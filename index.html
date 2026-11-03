@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Mestres do Poker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,800;1,6..96,500&family=Archivo:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: mesa de feltro — faixas largas de feltro escuro, filetes de latão, cartas em leque no herói */
+:root{
+  color-scheme:dark;
+  --felt:#0c241d; --felt-2:#123429; --felt-3:#1a4436;
+  --ivory:#f1ead8; --muted:#a9b8ae;
+  --brass:#d1a84f; --chip:#d23b33;
+  --line:rgba(209,168,79,.28);
+  --f-display:"Bodoni Moda",Didot,"Times New Roman",serif;
+  --f-body:"Archivo","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--felt);color:var(--ivory);font:16px/1.6 var(--f-body);margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--felt)}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--brass);outline-offset:3px}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.05}
+.eyebrow{font:500 .72rem/1 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--brass)}
+.btn{display:inline-flex;align-items:center;gap:.5em;border-radius:999px;padding:.7em 1.4em;font:700 .95rem var(--f-body);text-decoration:none;border:1px solid transparent;cursor:pointer;transition:transform .15s,background .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn-chip{background:var(--chip);color:#fff}
+.btn-chip:hover{background:#e04840}
+.btn-ghost{border-color:var(--line);color:var(--ivory);background:transparent}
+.btn-ghost:hover{background:var(--felt-2)}
+
+/* Header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(12,36,29,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:24px;padding-block:14px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.logo-mark{width:38px;height:38px;border-radius:50%;background:var(--chip);display:grid;place-items:center;border:3px dashed var(--ivory);font:800 1rem var(--f-display);color:#fff}
+.logo-txt{font:800 1.25rem/1 var(--f-display);letter-spacing:.01em}
+.logo-txt em{font-style:italic;font-weight:500;color:var(--brass)}
+nav.main{display:flex;gap:22px;margin-left:12px}
+nav.main a{text-decoration:none;font-weight:500;color:var(--muted);font-size:.95rem}
+nav.main a:hover{color:var(--ivory)}
+.bar .actions{margin-left:auto;display:flex;gap:10px}
+.menu-btn{display:none;background:none;border:1px solid var(--line);color:var(--ivory);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
+@media (max-width:900px){
+  nav.main{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;gap:0;margin:0;background:var(--felt);border-bottom:1px solid var(--line);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  nav.main.open{display:flex}
+  nav.main a{padding:14px 0;border-top:1px solid var(--line)}
+  .menu-btn{display:block}
+  .bar .actions .btn-ghost{display:none}
+}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;background:radial-gradient(ellipse 80% 90% at 70% 40%,var(--felt-3),var(--felt) 70%)}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding-block:72px 80px}
+.hero h1{font-size:clamp(2.6rem,6vw,5rem);font-weight:800;margin:18px 0 20px}
+.hero h1 em{font-weight:500;color:var(--brass)}
+.hero p.lead{color:var(--muted);font-size:1.12rem;max-width:34em;margin:0 0 28px}
+.offer{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:28px}
+.offer-val{font:800 3.2rem/1 var(--f-display);color:var(--ivory)}
+.offer-val small{font-size:1.1rem;color:var(--brass);font-weight:500}
+.offer-txt{font-size:.92rem;color:var(--muted);max-width:18em;line-height:1.4}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap}
+.fineprint{margin-top:18px;font-size:.78rem;color:var(--muted)}
+.fan{position:relative;height:340px;min-width:0}
+.card{position:absolute;left:50%;top:50%;width:150px;height:212px;margin:-106px 0 0 -75px;border-radius:12px;background:#fbf7ec;color:#16110a;box-shadow:0 18px 40px rgba(0,0,0,.45);transform-origin:50% 130%;font-family:var(--f-display);transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.card .ix{position:absolute;top:10px;left:12px;font-weight:800;font-size:1.5rem;line-height:1;text-align:center}
+.card .ix span{display:block;font-size:1.1rem}
+.card .big{position:absolute;inset:0;display:grid;place-items:center;font-size:4.2rem}
+.card.red{color:#b5241d}
+.card:nth-child(1){transform:rotate(-24deg)}
+.card:nth-child(2){transform:rotate(-12deg)}
+.card:nth-child(3){transform:rotate(0)}
+.card:nth-child(4){transform:rotate(12deg)}
+.card:nth-child(5){transform:rotate(24deg)}
+.fan:hover .card:nth-child(1){transform:rotate(-32deg) translateY(-8px)}
+.fan:hover .card:nth-child(2){transform:rotate(-16deg) translateY(-14px)}
+.fan:hover .card:nth-child(3){transform:translateY(-18px)}
+.fan:hover .card:nth-child(4){transform:rotate(16deg) translateY(-14px)}
+.fan:hover .card:nth-child(5){transform:rotate(32deg) translateY(-8px)}
+.hand-label{position:absolute;bottom:0;left:0;right:0;text-align:center}
+@media (max-width:860px){.hero .wrap{grid-template-columns:1fr;padding-block:48px 56px}.fan{height:300px;order:-1}.card{width:120px;height:170px;margin:-85px 0 0 -60px}.card .big{font-size:3.2rem}}
+
+/* Ticker */
+.ticker{border-block:1px solid var(--line);background:var(--felt-2);overflow:hidden;white-space:nowrap}
+.ticker-track{display:inline-flex;gap:48px;padding-block:12px;animation:tick 40s linear infinite;font:500 .85rem var(--f-mono);color:var(--muted)}
+.ticker b{color:var(--brass);font-weight:500}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+section{padding-block:80px}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;margin-bottom:36px}
+.sec-head h2{font-size:clamp(2rem,4vw,3rem);font-weight:800;margin-top:10px}
+.sec-head p{color:var(--muted);max-width:30em;margin:0}
+
+/* Modalidades */
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.game{background:var(--felt-2);border:1px solid var(--line);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:12px;transition:border-color .2s,transform .2s}
+.game:hover{border-color:var(--brass);transform:translateY(-3px)}
+.game .suit{font:800 2rem/1 var(--f-display);color:var(--brass)}
+.game .suit.red{color:var(--chip)}
+.game h3{font-size:1.45rem}
+.game p{color:var(--muted);margin:0;font-size:.94rem;flex:1}
+.game .meta{display:flex;justify-content:space-between;font:500 .78rem var(--f-mono);color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.game .meta b{color:var(--ivory);font-weight:500}
+
+/* Torneios */
+.tour{background:var(--felt-2);border-block:1px solid var(--line)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:.45em 1.1em;font:500 .88rem var(--f-body);cursor:pointer}
+.tab[aria-selected="true"]{background:var(--brass);color:var(--felt);border-color:var(--brass)}
+.table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--felt)}
+table{width:100%;border-collapse:collapse;min-width:640px;font-variant-numeric:tabular-nums}
+th,td{padding:14px 18px;text-align:left;border-bottom:1px solid var(--line)}
+th{font:500 .7rem var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+tr:last-child td{border-bottom:0}
+td.mono{font-family:var(--f-mono);font-size:.9rem}
+td .name{font-weight:700}
+td .sub{display:block;font-size:.8rem;color:var(--muted)}
+.pill{display:inline-block;font:500 .72rem var(--f-mono);padding:.3em .8em;border-radius:999px;letter-spacing:.04em}
+.pill.live{background:rgba(210,59,51,.18);color:#ff8a82}
+.pill.reg{background:rgba(209,168,79,.16);color:var(--brass)}
+.pill.late{background:rgba(169,184,174,.14);color:var(--muted)}
+.btn-sm{padding:.45em 1em;font-size:.82rem}
+
+/* Ranking + Escola */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+@media (max-width:860px){.split{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line);border-radius:18px;padding:28px;background:var(--felt-2);min-width:0}
+.panel h3{font-size:1.7rem;margin:10px 0 18px}
+.rank{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.rank li{display:grid;grid-template-columns:2.2em 1fr auto;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.rank li:last-child{border-bottom:0}
+.rank .pos{font:800 1.3rem var(--f-display);color:var(--brass)}
+.rank .pts{font:500 .9rem var(--f-mono)}
+.rank .who small{display:block;color:var(--muted);font-size:.8rem}
+.hands{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.hands li{display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap}
+.minis{display:flex;gap:4px}
+.mini{width:30px;height:42px;border-radius:5px;background:#fbf7ec;color:#16110a;display:grid;place-items:center;font:800 .85rem/1 var(--f-display)}
+.mini.red{color:#b5241d}
+.hands .hn{font-weight:700}
+.hands .hn small{display:block;font-weight:400;color:var(--muted);font-size:.8rem}
+
+/* App */
+.app .wrap{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center}
+.app-box{border:1px solid var(--brass);border-radius:22px;padding:48px;background:linear-gradient(135deg,var(--felt-3),var(--felt-2))}
+.app h2{font-size:clamp(2rem,4vw,3rem);font-weight:800;margin:10px 0 14px}
+.app p{color:var(--muted);max-width:32em;margin:0 0 24px}
+.platforms{display:flex;gap:10px;flex-wrap:wrap}
+.phone{width:200px;height:380px;border-radius:30px;border:6px solid #050f0b;background:var(--felt);position:relative;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.5)}
+.phone .tbl{position:absolute;inset:60px 18px;border-radius:50%/30%;background:radial-gradient(var(--felt-3),#0a2019);border:4px solid #5a3b1c}
+.phone .pot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font:500 .7rem var(--f-mono);color:var(--brass);text-align:center}
+.phone .board{position:absolute;top:38%;left:50%;transform:translateX(-50%);display:flex;gap:3px}
+.phone .board .mini{width:20px;height:28px;font-size:.6rem}
+@media (max-width:860px){.app .wrap{grid-template-columns:1fr}.phone{display:none}.app-box{padding:28px}}
+
+/* Cassino */
+.jackpot{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border:1px solid var(--brass);border-radius:16px;padding:18px 24px;margin-bottom:24px;background:linear-gradient(90deg,var(--felt-3),var(--felt-2))}
+.jackpot .jv{font:800 clamp(1.8rem,4vw,2.6rem)/1 var(--f-display);color:var(--brass);font-variant-numeric:tabular-nums}
+.cas-tabs{margin-bottom:22px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px}
+.tile{background:var(--felt-2);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;text-align:left;color:var(--ivory);font:inherit;padding:0;transition:transform .2s,border-color .2s}
+.tile:hover{transform:translateY(-3px);border-color:var(--brass)}
+.tile .art{aspect-ratio:4/3;max-width:100%;display:grid;place-items:center;font:800 3rem/1 var(--f-display);color:#fff;position:relative;text-shadow:0 4px 18px rgba(0,0,0,.45)}
+.tile .badge{position:absolute;top:8px;left:8px;font:500 .64rem var(--f-mono);letter-spacing:.06em;padding:.3em .6em;border-radius:999px;background:rgba(0,0,0,.45);color:#fff}
+.tile .badge.live{background:var(--chip)}
+.tile .info{padding:12px 14px;display:grid;gap:4px}
+.tile .tn{font-weight:700;line-height:1.25}
+.tile .tm{display:flex;justify-content:space-between;font:500 .72rem var(--f-mono);color:var(--muted)}
+
+/* Esportes */
+.sports{background:var(--felt-2);border-block:1px solid var(--line)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:22px}
+.chip{flex-shrink:0;display:inline-flex;align-items:center;gap:8px;background:var(--felt);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:.5em 1.05em;font:500 .9rem var(--f-body);cursor:pointer}
+.chip small{font:500 .7rem var(--f-mono);color:var(--brass)}
+.chip[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--felt)}
+.chip[aria-pressed="true"] small{color:var(--felt)}
+.sb{display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start}
+@media (max-width:900px){.sb{grid-template-columns:1fr}}
+.events{display:grid;gap:10px;min-width:0}
+.ev{background:var(--felt);border:1px solid var(--line);border-radius:14px;padding:14px 18px;display:grid;grid-template-columns:1fr auto;gap:10px 18px;align-items:center}
+@media (max-width:600px){.ev{grid-template-columns:1fr}}
+.ev .lg{font:500 .7rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ev .teams{font-weight:700;margin-top:4px;line-height:1.4}
+.ev .score{font-family:var(--f-mono);color:var(--brass);margin-left:6px}
+.odds{display:flex;gap:6px;flex-wrap:wrap}
+.odd{min-width:74px;display:grid;gap:2px;justify-items:center;background:var(--felt-2);border:1px solid var(--line);border-radius:10px;padding:.45em .7em;color:var(--ivory);font:inherit;cursor:pointer}
+.odd span{font-size:.68rem;color:var(--muted);max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.odd b{font:500 .95rem var(--f-mono)}
+.odd:hover{border-color:var(--brass)}
+.odd[aria-pressed="true"]{background:var(--brass);border-color:var(--brass);color:var(--felt)}
+.odd[aria-pressed="true"] span{color:var(--felt)}
+.slip{position:sticky;top:90px;background:var(--felt);border:1px solid var(--brass);border-radius:16px;padding:20px;min-width:0}
+.slip h3{font-size:1.4rem;margin:6px 0 12px}
+.slip ul{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:8px}
+.slip li{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;font-size:.85rem;border-bottom:1px solid var(--line);padding-bottom:8px}
+.slip li small{display:block;color:var(--muted);font-size:.75rem}
+.slip li b{font-family:var(--f-mono);font-weight:500;color:var(--brass)}
+.slip .rm{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem}
+.slip .empty{color:var(--muted);font-size:.88rem;margin:0 0 14px}
+.slip .row{display:flex;justify-content:space-between;font-size:.88rem;margin:6px 0;font-variant-numeric:tabular-nums}
+.slip .row b{font-family:var(--f-mono);font-weight:500}
+.slip label{font-size:.8rem;color:var(--muted)}
+.slip input{width:100%;margin:6px 0 10px;padding:.6em .9em;border-radius:10px;border:1px solid var(--line);background:var(--felt-2);color:var(--ivory);font:500 1rem var(--f-mono)}
+
+/* Footer */
+footer{border-top:1px solid var(--line);padding-block:48px 32px;color:var(--muted);font-size:.88rem}
+.foot{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:28px}
+@media (max-width:760px){.foot{grid-template-columns:1fr 1fr}}
+.foot h4{font:500 .72rem var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin:0 0 12px}
+.foot ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.foot a{text-decoration:none}
+.foot a:hover{color:var(--ivory)}
+.resp{margin-top:36px;padding-top:24px;border-top:1px solid var(--line);display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.age{width:44px;height:44px;border-radius:50%;border:2px solid var(--chip);display:grid;place-items:center;font:700 .9rem var(--f-body);color:var(--ivory);flex-shrink:0}
+.resp p{margin:0;flex:1;min-width:240px}
+
+/* Modal */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(3,10,8,.75);display:grid;place-items:center;padding:20px}
+.dialog{background:var(--felt-2);border:1px solid var(--brass);border-radius:18px;padding:32px;width:min(420px,100%);position:relative}
+.dialog h3{font-size:1.8rem;margin-bottom:6px}
+.dialog p{color:var(--muted);margin:0 0 20px;font-size:.92rem}
+.dialog label{display:block;font-size:.82rem;color:var(--muted);margin:12px 0 6px}
+.dialog input{width:100%;padding:.75em 1em;border-radius:10px;border:1px solid var(--line);background:var(--felt);color:var(--ivory);font:inherit}
+.dialog .chk{display:flex;gap:8px;align-items:flex-start;font-size:.82rem;color:var(--muted);margin:16px 0}
+.dialog .chk input{width:auto;margin-top:3px}
+.dialog .close{position:absolute;top:12px;right:14px;background:none;border:0;color:var(--muted);font-size:1.5rem;cursor:pointer}
+.dialog .ok{color:var(--brass);font-weight:700;margin-top:14px}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header>
+  <div class="wrap bar">
+    <a href="#" class="logo" aria-label="Mestres do Poker, início">
+      <span class="logo-mark">M</span>
+      <span class="logo-txt">Mestres <em>do</em> Poker</span>
+    </a>
+    <nav class="main" id="nav">
+      <a href="#modalidades">Poker</a>
+      <a href="#cassino">Cassino</a>
+      <a href="#esportes">Esportes</a>
+      <a href="#torneios">Torneios</a>
+      <a href="#ranking">Ranking</a>
+      <a href="#escola">Escola</a>
+      <a href="#app">Baixar app</a>
+    </nav>
+    <div class="actions">
+      <button class="btn btn-ghost" data-open="login">Entrar</button>
+      <button class="btn btn-chip" data-open="join">Cadastre-se</button>
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="nav">Menu</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero" style="padding-block:0">
+    <div class="wrap">
+      <div>
+        <span class="eyebrow">Temporada de Novembro · Série Coroa</span>
+        <h1>Sente à mesa. <em>Saia como mestre.</em></h1>
+        <p class="lead">Cash games 24 horas, torneios com garantidos diários e uma escola para quem está começando. Tudo numa mesa só.</p>
+        <div class="offer">
+          <div class="offer-val">100% <small>até R$ 2.000</small></div>
+          <div class="offer-txt">no primeiro depósito, mais 5 tickets para o torneio Fichas de Ouro.</div>
+        </div>
+        <div class="cta-row">
+          <button class="btn btn-chip" data-open="join">Criar conta grátis</button>
+          <a class="btn btn-ghost" href="#torneios">Ver torneios de hoje</a>
+        </div>
+        <p class="fineprint">Proibido para menores de 18 anos. Bônus liberado conforme pontos de fidelidade. Jogue com responsabilidade.</p>
+      </div>
+      <div class="fan" aria-label="Mão de exemplo: Royal Flush de espadas">
+        <div class="card"><div class="ix">10<span>♠</span></div><div class="big">♠</div></div>
+        <div class="card"><div class="ix">J<span>♠</span></div><div class="big">♠</div></div>
+        <div class="card"><div class="ix">Q<span>♠</span></div><div class="big">♠</div></div>
+        <div class="card"><div class="ix">K<span>♠</span></div><div class="big">♠</div></div>
+        <div class="card"><div class="ix">A<span>♠</span></div><div class="big">♠</div></div>
+        <div class="hand-label eyebrow">Royal Flush · 1 em 649.740 mãos</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track" id="ticker"></div>
+  </div>
+
+  <section id="modalidades">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="eyebrow">Modalidades</span><h2>Escolha sua mesa</h2></div>
+        <p>Do micro-stake às mesas altas. Entre e saia quando quiser nas mesas cash, ou garanta seu assento num torneio.</p>
+      </div>
+      <div class="games">
+        <article class="game"><div class="suit">♠</div><h3>Texas Hold'em</h3><p>Duas cartas na mão, cinco na mesa. O jogo mais disputado do mundo, em No-Limit e Pot-Limit.</p><div class="meta"><span>Blinds</span><b>R$ 0,05/0,10 – 25/50</b></div></article>
+        <article class="game"><div class="suit red">♥</div><h3>Omaha</h3><p>Quatro cartas na mão e muito mais ação. Use exatamente duas delas para montar seu jogo.</p><div class="meta"><span>Blinds</span><b>R$ 0,10/0,25 – 10/20</b></div></article>
+        <article class="game"><div class="suit red">♦</div><h3>Giro Relâmpago</h3><p>Três jogadores, fichas curtas e um prêmio sorteado antes da primeira mão, de 2x até 1.000x a entrada.</p><div class="meta"><span>Entrada</span><b>R$ 1 – 250</b></div></article>
+        <article class="game"><div class="suit">♣</div><h3>Sit &amp; Go</h3><p>O torneio começa assim que a mesa enche. Nove ou seis lugares, estruturas turbo e normal.</p><div class="meta"><span>Entrada</span><b>R$ 2 – 500</b></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="cassino" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="eyebrow">Cassino · mais de 30 jogos</span><h2>Cassino Mestres</h2></div>
+        <p>Caça-níqueis, roleta, blackjack, mesas com crupiê ao vivo e jogos rápidos. O RTP de cada jogo aparece no cartão.</p>
+      </div>
+      <div class="jackpot">
+        <div><span class="eyebrow">Jackpot progressivo Mega Coroa</span></div>
+        <div class="jv" id="jackpot">R$ 3.482.917,40</div>
+        <button class="btn btn-chip" data-open="join">Concorrer</button>
+      </div>
+      <div class="tabs cas-tabs" role="tablist" aria-label="Categorias do cassino" id="casTabs"></div>
+      <div class="tiles" id="tiles"></div>
+    </div>
+  </section>
+
+  <section id="esportes" class="sports">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="eyebrow">Apostas esportivas · odds decimais</span><h2>Mestres Esportes</h2></div>
+        <p>Futebol, basquete, tênis e mais. Clique numa odd para colocá-la no cupom. Duas ou mais seleções viram uma múltipla.</p>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="sb">
+        <div class="events" id="events"></div>
+        <aside class="slip" aria-live="polite">
+          <span class="eyebrow">Cupom de apostas</span>
+          <h3 id="slipTitle">Simples</h3>
+          <div id="slipBody"></div>
+          <label for="stake">Valor da aposta (R$)</label>
+          <input id="stake" type="number" min="1" step="1" value="20" inputmode="decimal">
+          <div class="row"><span>Odd total</span><b id="totOdd">—</b></div>
+          <div class="row"><span>Retorno possível</span><b id="ret">—</b></div>
+          <button class="btn btn-chip" data-open="join" style="width:100%;justify-content:center;margin-top:10px">Fazer aposta</button>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section id="torneios" class="tour">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="eyebrow">Agenda · horário de Brasília</span><h2>Torneios de hoje</h2></div>
+        <div class="tabs" role="tablist" aria-label="Filtrar torneios">
+          <button class="tab" role="tab" aria-selected="true" data-f="all">Todos</button>
+          <button class="tab" role="tab" aria-selected="false" data-f="low">Até R$ 50</button>
+          <button class="tab" role="tab" aria-selected="false" data-f="high">Alto buy-in</button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Horário</th><th>Torneio</th><th>Buy-in</th><th>Garantido</th><th>Inscritos</th><th>Status</th><th></th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap split">
+      <div class="panel" id="ranking">
+        <span class="eyebrow">Ranking da Série Coroa · semana 44</span>
+        <h3>Quem manda na mesa</h3>
+        <ol class="rank">
+          <li><span class="pos">1</span><span class="who">ReiDoRiver <small>São Paulo, SP</small></span><span class="pts">4.820 pts</span></li>
+          <li><span class="pos">2</span><span class="who">BlefeMineiro <small>Belo Horizonte, MG</small></span><span class="pts">4.315 pts</span></li>
+          <li><span class="pos">3</span><span class="who">PocketAces_RJ <small>Rio de Janeiro, RJ</small></span><span class="pts">3.990 pts</span></li>
+          <li><span class="pos">4</span><span class="who">CheckRaiseSul <small>Porto Alegre, RS</small></span><span class="pts">3.712 pts</span></li>
+          <li><span class="pos">5</span><span class="who">NutsDoNordeste <small>Recife, PE</small></span><span class="pts">3.540 pts</span></li>
+        </ol>
+      </div>
+      <div class="panel" id="escola">
+        <span class="eyebrow">Escola Mestres · aula 1</span>
+        <h3>A ordem das mãos</h3>
+        <ul class="hands">
+          <li><span class="hn">Royal Flush <small>sequência de 10 a Ás, mesmo naipe</small></span><span class="minis"><i class="mini">A♠</i><i class="mini">K♠</i><i class="mini">Q♠</i><i class="mini">J♠</i><i class="mini">10♠</i></span></li>
+          <li><span class="hn">Straight Flush <small>sequência do mesmo naipe</small></span><span class="minis"><i class="mini red">9♥</i><i class="mini red">8♥</i><i class="mini red">7♥</i><i class="mini red">6♥</i><i class="mini red">5♥</i></span></li>
+          <li><span class="hn">Quadra <small>quatro cartas iguais</small></span><span class="minis"><i class="mini">Q♣</i><i class="mini red">Q♦</i><i class="mini red">Q♥</i><i class="mini">Q♠</i><i class="mini red">3♦</i></span></li>
+          <li><span class="hn">Full House <small>trinca mais um par</small></span><span class="minis"><i class="mini">K♠</i><i class="mini red">K♥</i><i class="mini red">K♦</i><i class="mini">7♣</i><i class="mini">7♠</i></span></li>
+          <li><span class="hn">Flush <small>cinco cartas do mesmo naipe</small></span><span class="minis"><i class="mini red">A♦</i><i class="mini red">J♦</i><i class="mini red">8♦</i><i class="mini red">6♦</i><i class="mini red">2♦</i></span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="app" class="app" style="padding-top:0">
+    <div class="wrap">
+      <div class="app-box">
+        <span class="eyebrow">Celular e computador</span>
+        <h2>Sua mesa cabe no bolso</h2>
+        <p>Jogue até 4 mesas ao mesmo tempo no celular e até 24 no computador. Sua conta, seu saldo e seus tickets sincronizam entre os dois.</p>
+        <div class="platforms">
+          <button class="btn btn-chip" data-open="join">Android</button>
+          <button class="btn btn-ghost" data-open="join">iPhone</button>
+          <button class="btn btn-ghost" data-open="join">Windows</button>
+          <button class="btn btn-ghost" data-open="join">macOS</button>
+        </div>
+      </div>
+      <div class="phone" aria-hidden="true">
+        <div class="tbl"></div>
+        <div class="board"><i class="mini red">A♥</i><i class="mini">K♣</i><i class="mini red">7♦</i></div>
+        <div class="pot">POTE<br>R$ 1.240</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <a href="#" class="logo"><span class="logo-mark">M</span><span class="logo-txt">Mestres <em>do</em> Poker</span></a>
+        <p style="margin-top:14px;max-width:24em">Poker online para quem leva o jogo a sério e para quem está só começando.</p>
+      </div>
+      <div><h4>Jogar</h4><ul><li><a href="#modalidades">Poker</a></li><li><a href="#cassino">Cassino</a></li><li><a href="#esportes">Apostas esportivas</a></li><li><a href="#torneios">Torneios</a></li><li><a href="#ranking">Ranking</a></li></ul></div>
+      <div><h4>Ajuda</h4><ul><li><a href="#escola">Regras do poker</a></li><li><a href="#">Depósitos e saques</a></li><li><a href="#">Central de suporte</a></li><li><a href="#">Fale conosco</a></li></ul></div>
+      <div><h4>Empresa</h4><ul><li><a href="#">Sobre nós</a></li><li><a href="#">Termos de uso</a></li><li><a href="#">Privacidade</a></li><li><a href="#">Jogo responsável</a></li></ul></div>
+    </div>
+    <div class="resp">
+      <span class="age">18+</span>
+      <p>Jogar pode causar dependência. Defina limites de depósito e de tempo na sua conta. Se precisar de ajuda, procure apoio especializado. © 2026 Mestres do Poker.</p>
+    </div>
+  </div>
+</footer>
+
+<div class="modal" id="modal" hidden>
+  <form class="dialog" id="form" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <button type="button" class="close" id="mClose" aria-label="Fechar">×</button>
+    <h3 id="mTitle">Crie sua conta</h3>
+    <p id="mSub">Leva menos de um minuto. O bônus fica ativo no primeiro depósito.</p>
+    <div id="nickRow"><label for="nick">Apelido na mesa</label><input id="nick" required maxlength="16" placeholder="ex.: ReiDoRiver"></div>
+    <label for="email">E-mail</label><input id="email" type="email" required placeholder="voce@email.com">
+    <div class="chk" id="ageRow"><input type="checkbox" id="age" required><label for="age" style="margin:0">Tenho 18 anos ou mais e aceito os termos de uso.</label></div>
+    <button class="btn btn-chip" type="submit" id="mSubmit" style="width:100%;justify-content:center;margin-top:8px">Criar conta</button>
+    <p class="ok" id="mOk" hidden>Demonstração: nenhum dado foi enviado.</p>
+  </form>
+</div>
+
+<script>
+const T=[
+  {h:"14:00",n:"Fichas de Ouro",s:"NLH · Turbo",b:11,g:5000,e:412,st:"live"},
+  {h:"16:30",n:"Omaha da Tarde",s:"PLO · Normal",b:22,g:8000,e:188,st:"late"},
+  {h:"18:00",n:"Coroa Diária",s:"NLH · Rebuy",b:55,g:25000,e:96,st:"reg"},
+  {h:"19:30",n:"Bounty dos Mestres",s:"NLH · Progressive KO",b:33,g:15000,e:64,st:"reg"},
+  {h:"20:00",n:"Main Event da Série Coroa",s:"NLH · Deep stack · Dia 1A",b:530,g:500000,e:217,st:"reg"},
+  {h:"21:15",n:"Madrugada Hyper",s:"NLH · Hyper turbo",b:5.5,g:2000,e:31,st:"reg"},
+  {h:"22:00",n:"High Roller da Coroa",s:"NLH · 8-max",b:2100,g:300000,e:42,st:"reg"}
+];
+const brl=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",minimumFractionDigits:v%1?2:0});
+const lab={live:"Ao vivo",reg:"Inscrições abertas",late:"Inscrição tardia"};
+function render(f){
+  document.getElementById("tbody").innerHTML=T.filter(t=>f==="all"||(f==="low"?t.b<=50:t.b>50)).map(t=>
+    `<tr><td class="mono">${t.h}</td><td><span class="name">${t.n}</span><span class="sub">${t.s}</span></td><td class="mono">${brl(t.b)}</td><td class="mono">${brl(t.g)}</td><td class="mono">${t.e}</td><td><span class="pill ${t.st}">${lab[t.st]}</span></td><td><button class="btn btn-ghost btn-sm" data-open="join">${t.st==="live"?"Assistir":"Inscrever"}</button></td></tr>`).join("");
+}
+render("all");
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===b));
+  render(b.dataset.f);
+}));
+
+const tk=["<b>ReiDoRiver</b> ganhou R$ 12.400 na Coroa Diária","<b>BlefeMineiro</b> acertou quadra de Ases no Omaha","<b>R$ 500.000</b> garantidos no Main Event da Série Coroa","<b>PocketAces_RJ</b> girou 500x no Giro Relâmpago","<b>12.840</b> jogadores online agora"];
+document.getElementById("ticker").innerHTML=[...tk,...tk].map(x=>`<span>♠ ${x}</span>`).join("");
+
+/* Cassino */
+const G=[
+  {c:"slots",n:"Rio das Pepitas",s:"$",h:42,rtp:96.5,v:"Alta"},
+  {c:"slots",n:"Coroa de Fogo",s:"♛",h:8,rtp:96.2,v:"Média"},
+  {c:"slots",n:"Frutas da Feira",s:"🍒",h:350,rtp:95.8,v:"Baixa"},
+  {c:"slots",n:"Sete da Sorte",s:"7",h:0,rtp:96.0,v:"Média"},
+  {c:"slots",n:"Dragão de Jade",s:"龍",h:150,rtp:96.4,v:"Alta"},
+  {c:"slots",n:"Carnaval 117 mil linhas",s:"✦",h:300,rtp:96.3,v:"Alta"},
+  {c:"live",n:"Roleta Brasileira ao Vivo",s:"◎",h:2,p:318},
+  {c:"live",n:"Blackjack VIP",s:"21",h:200,p:57},
+  {c:"live",n:"Bacará Speed",s:"9",h:260,p:142},
+  {c:"live",n:"Roda da Fortuna Show",s:"✺",h:30,p:1204},
+  {c:"live",n:"Sic Bo ao Vivo",s:"⚂",h:180,p:86},
+  {c:"live",n:"Cassino Hold'em ao Vivo",s:"♠",h:150,p:73},
+  {c:"mesa",n:"Roleta Europeia",s:"0",h:130,rtp:97.3},
+  {c:"mesa",n:"Blackjack Clássico",s:"A♠",h:215,rtp:99.5},
+  {c:"mesa",n:"Video Poker Jacks or Better",s:"J",h:45,rtp:99.5},
+  {c:"mesa",n:"Bacará Punto Banco",s:"8",h:280,rtp:98.9},
+  {c:"mesa",n:"Craps",s:"⚄",h:20,rtp:98.6},
+  {c:"mesa",n:"Três Cartas",s:"3",h:330,rtp:96.6},
+  {c:"rapidos",n:"Foguete Mestre",s:"↗",h:355,rtp:97.0,t:"Crash"},
+  {c:"rapidos",n:"Campo Minado",s:"✸",h:100,rtp:97.0,t:"Minas"},
+  {c:"rapidos",n:"Chuva de Pinos",s:"⋮",h:200,rtp:99.0,t:"Plinko"},
+  {c:"rapidos",n:"Dados Hi-Lo",s:"⚅",h:25,rtp:98.0,t:"Dados"},
+  {c:"rapidos",n:"Raspadinha Ouro",s:"▦",h:48,rtp:95.0,t:"Raspadinha"},
+  {c:"rapidos",n:"Bingo Mestre 75",s:"B",h:280,rtp:94.0,t:"Bingo"}
+];
+const CC=[["all","Todos"],["slots","Caça-níqueis"],["live","Ao vivo"],["mesa","Jogos de mesa"],["rapidos","Rápidos e crash"]];
+const casTabs=document.getElementById("casTabs");
+casTabs.innerHTML=CC.map(([k,l],i)=>`<button class="tab" role="tab" aria-selected="${i===0}" data-c="${k}">${l}</button>`).join("");
+function renderTiles(c){
+  document.getElementById("tiles").innerHTML=G.filter(g=>c==="all"||g.c===c).map(g=>{
+    const badge=g.c==="live"?`<span class="badge live">AO VIVO</span>`:g.t?`<span class="badge">${g.t.toUpperCase()}</span>`:g.c==="slots"?`<span class="badge">SLOT</span>`:"";
+    const meta=g.c==="live"?`<span>${g.p} jogando</span><span>crupiê</span>`:`<span>RTP ${g.rtp.toFixed(1).replace(".",",")}%</span><span>${g.v||""}</span>`;
+    return `<button class="tile" data-open="join"><div class="art" style="background:linear-gradient(140deg,hsl(${g.h} 55% 38%),hsl(${(g.h+40)%360} 60% 18%))">${badge}${g.s}</div><div class="info"><span class="tn">${g.n}</span><span class="tm">${meta}</span></div></button>`;
+  }).join("");
+}
+renderTiles("all");
+casTabs.addEventListener("click",e=>{const b=e.target.closest(".tab");if(!b)return;
+  casTabs.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===b));renderTiles(b.dataset.c)});
+let jp=3482917.40;
+setInterval(()=>{jp+=Math.random()*38;document.getElementById("jackpot").textContent=brl(Math.round(jp*100)/100)},1200);
+
+/* Esportes — exemplos, odds ilustrativas */
+const SP=[["futebol","⚽ Futebol"],["basquete","🏀 Basquete"],["tenis","🎾 Tênis"],["volei","🏐 Vôlei"],["f1","🏎 Fórmula 1"],["nfl","🏈 Futebol americano"],["mma","🥊 MMA"],["esports","🎮 eSports"]];
+const EV=[
+  {sp:"futebol",lg:"Brasileirão Série A",a:"Flamengo",b:"Palmeiras",live:"1 – 0 · 67'",o:[["1",2.30],["X",3.20],["2",3.10]]},
+  {sp:"futebol",lg:"Brasileirão Série A",a:"Corinthians",b:"São Paulo",tm:"Hoje 21:30",o:[["1",2.45],["X",3.10],["2",2.95]]},
+  {sp:"futebol",lg:"Premier League",a:"Arsenal",b:"Liverpool",tm:"Sáb 14:30",o:[["1",2.20],["X",3.50],["2",3.15]]},
+  {sp:"futebol",lg:"La Liga",a:"Real Madrid",b:"Barcelona",tm:"Dom 17:00",o:[["1",2.05],["X",3.70],["2",3.30]]},
+  {sp:"futebol",lg:"Champions League",a:"Bayern de Munique",b:"Inter de Milão",tm:"Qua 17:00",o:[["1",1.75],["X",3.90],["2",4.40]]},
+  {sp:"basquete",lg:"NBA",a:"Los Angeles Lakers",b:"Boston Celtics",tm:"Hoje 23:30",o:[["1",2.25],["2",1.66]]},
+  {sp:"basquete",lg:"NBA",a:"Denver Nuggets",b:"Oklahoma City Thunder",live:"58 – 61 · 2º Q",o:[["1",2.10],["2",1.75]]},
+  {sp:"basquete",lg:"NBB",a:"Franca",b:"Flamengo",tm:"Qui 20:00",o:[["1",1.72],["2",2.10]]},
+  {sp:"tenis",lg:"ATP Finals · Turim",a:"Jannik Sinner",b:"Carlos Alcaraz",tm:"Dom 14:00",o:[["1",1.80],["2",2.00]]},
+  {sp:"tenis",lg:"ATP Finals · Turim",a:"Alexander Zverev",b:"Taylor Fritz",live:"6-4 3-2",o:[["1",1.40],["2",2.90]]},
+  {sp:"tenis",lg:"WTA",a:"Aryna Sabalenka",b:"Iga Świątek",tm:"Sex 10:00",o:[["1",1.75],["2",2.05]]},
+  {sp:"volei",lg:"Superliga Masculina",a:"Sada Cruzeiro",b:"Sesi Bauru",tm:"Hoje 19:00",o:[["1",1.45],["2",2.65]]},
+  {sp:"volei",lg:"Superliga Feminina",a:"Praia Clube",b:"Minas",tm:"Sáb 18:30",o:[["1",1.95],["2",1.80]]},
+  {sp:"f1",lg:"GP de Las Vegas · vencedor",a:"Mercado de vencedor",b:"",tm:"Sáb 01:00",o:[["Norris",3.10],["Verstappen",3.25],["Piastri",4.50],["Russell",7.00]]},
+  {sp:"nfl",lg:"NFL",a:"Kansas City Chiefs",b:"Buffalo Bills",tm:"Dom 18:25",o:[["1",1.87],["2",1.95]]},
+  {sp:"nfl",lg:"NFL",a:"Philadelphia Eagles",b:"Dallas Cowboys",tm:"Seg 22:15",o:[["1",1.55],["2",2.50]]},
+  {sp:"mma",lg:"Card principal · peso-leve",a:"Lutador vermelho",b:"Lutador azul",tm:"Sáb 23:00",o:[["Vermelho",1.62],["Azul",2.30]]},
+  {sp:"esports",lg:"CS2 · Major",a:"FURIA",b:"Team Vitality",tm:"Hoje 15:00",o:[["1",3.10],["2",1.36]]},
+  {sp:"esports",lg:"League of Legends · CBLOL",a:"LOUD",b:"paiN Gaming",live:"1 – 1 · mapa 3",o:[["1",1.70],["2",2.10]]}
+];
+const slip=new Map();let curSp="futebol";
+const dec=v=>v.toFixed(2).replace(".",",");
+document.getElementById("chips").innerHTML=SP.map(([k,l])=>`<button class="chip" aria-pressed="${k===curSp}" data-sp="${k}">${l} <small>${EV.filter(e=>e.sp===k).length}</small></button>`).join("");
+function renderEvents(){
+  document.getElementById("events").innerHTML=EV.map((e,i)=>({e,i})).filter(x=>x.e.sp===curSp).map(({e,i})=>{
+    const when=e.live?`<span class="pill live">Ao vivo</span>`:`<span>${e.tm}</span>`;
+    const teams=e.b?`${e.a} <span style="color:var(--muted);font-weight:400">x</span> ${e.b}`:e.a;
+    const odds=e.o.map(([lb,v],j)=>{const lab=lb==="1"?e.a:lb==="2"?e.b:lb==="X"?"Empate":lb;
+      return `<button class="odd" aria-pressed="${slip.get(i)?.j===j}" data-ev="${i}" data-j="${j}" aria-label="${lab}, odd ${dec(v)}"><span>${lab}</span><b>${dec(v)}</b></button>`}).join("");
+    return `<div class="ev"><div><div class="lg"><span>${e.lg}</span>${when}</div><div class="teams">${teams}${e.live?`<span class="score">${e.live}</span>`:""}</div></div><div class="odds">${odds}</div></div>`;
+  }).join("");
+}
+function renderSlip(){
+  const items=[...slip.entries()];
+  document.getElementById("slipTitle").textContent=items.length>1?`Múltipla · ${items.length} seleções`:"Simples";
+  document.getElementById("slipBody").innerHTML=items.length?`<ul>${items.map(([i,{j}])=>{const e=EV[i],[lb,v]=e.o[j];
+    const lab=lb==="1"?e.a:lb==="2"?e.b:lb==="X"?"Empate":lb;
+    return `<li><span>${lab}<small>${e.b?e.a+" x "+e.b:e.lg}</small></span><b>${dec(v)}</b><button class="rm" data-rm="${i}" aria-label="Remover">×</button></li>`}).join("")}</ul>`
+    :`<p class="empty">Seu cupom está vazio. Clique numa odd para adicionar uma seleção.</p>`;
+  const tot=items.reduce((p,[i,{j}])=>p*EV[i].o[j][1],1);
+  const st=parseFloat(document.getElementById("stake").value)||0;
+  document.getElementById("totOdd").textContent=items.length?dec(tot):"—";
+  document.getElementById("ret").textContent=items.length&&st>0?brl(Math.round(tot*st*100)/100):"—";
+}
+document.getElementById("chips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;
+  curSp=b.dataset.sp;document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b));renderEvents()});
+document.getElementById("events").addEventListener("click",e=>{const b=e.target.closest(".odd");if(!b)return;
+  const i=+b.dataset.ev,j=+b.dataset.j;slip.get(i)?.j===j?slip.delete(i):slip.set(i,{j});renderEvents();renderSlip()});
+document.getElementById("slipBody").addEventListener("click",e=>{const b=e.target.closest("[data-rm]");if(!b)return;
+  slip.delete(+b.dataset.rm);renderEvents();renderSlip()});
+document.getElementById("stake").addEventListener("input",renderSlip);
+slip.set(0,{j:0});slip.set(8,{j:0});
+renderEvents();renderSlip();
+
+const nav=document.getElementById("nav"),mb=document.getElementById("menuBtn");
+mb.addEventListener("click",()=>{const o=nav.classList.toggle("open");mb.setAttribute("aria-expanded",o)});
+nav.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>{nav.classList.remove("open");mb.setAttribute("aria-expanded",false)}));
+
+const modal=document.getElementById("modal"),form=document.getElementById("form");
+function openM(kind){
+  const j=kind==="join";
+  document.getElementById("mTitle").textContent=j?"Crie sua conta":"Entrar";
+  document.getElementById("mSub").textContent=j?"Leva menos de um minuto. O bônus fica ativo no primeiro depósito.":"Use o e-mail da sua conta para receber um link de acesso.";
+  document.getElementById("nickRow").hidden=!j;document.getElementById("nick").required=j;
+  document.getElementById("ageRow").hidden=!j;document.getElementById("age").required=j;
+  document.getElementById("mSubmit").textContent=j?"Criar conta":"Enviar link de acesso";
+  document.getElementById("mOk").hidden=true;
+  modal.hidden=false;document.getElementById("email").focus();
+}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-open]");if(b)openM(b.dataset.open)});
+document.getElementById("mClose").addEventListener("click",()=>modal.hidden=true);
+modal.addEventListener("click",e=>{if(e.target===modal)modal.hidden=true});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")modal.hidden=true});
+form.addEventListener("submit",e=>{e.preventDefault();document.getElementById("mOk").hidden=false});
+</script>
+</html>
