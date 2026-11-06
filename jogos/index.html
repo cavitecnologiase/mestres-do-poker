@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bancada de Jogos</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -125,6 +130,8 @@ table.pay tr:last-child td { border-bottom: 0; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
+</head>
+<body>
 <div class="wrap">
   <header>
     <div class="brand">
@@ -927,3 +934,5 @@ renderHistory();
 showTab((location.hash || "").slice(1));
 if (document.fonts) document.fonts.ready.then(() => { drawCrash(crashView); drawConv(); });
 </script>
+</body>
+</html>
