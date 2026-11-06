@@ -103,6 +103,15 @@ table.pay tr:last-child td { border-bottom: 0; }
 .mines-mult { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .mines-mult .num { font-size: 22px; font-weight: 600; }
 
+/* Raposa */
+.reels .c.empty { color: var(--muted); font-size: clamp(20px, 5vw, 30px); }
+.reels .c.lock { border-color: var(--accent); }
+.feature { text-align: center; font: 800 18px var(--display); color: var(--accent); min-height: 27px; }
+
+/* Plinko e Roda */
+.plinko-canvas { width: 100%; aspect-ratio: 1 / 0.86; max-width: 100%; display: block; }
+.wheel-canvas { width: 100%; max-width: 440px; aspect-ratio: 1; display: block; margin: 0 auto; }
+
 /* Simulator */
 .sim-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
 @media (max-width: 860px) { .sim-grid { grid-template-columns: minmax(0, 1fr); } }
@@ -148,6 +157,9 @@ table.pay tr:last-child td { border-bottom: 0; }
     <button role="tab" data-tab="slot" aria-selected="true">Fruta Neon</button>
     <button role="tab" data-tab="crash" aria-selected="false">Foguete</button>
     <button role="tab" data-tab="minas" aria-selected="false">Minas</button>
+    <button role="tab" data-tab="raposa" aria-selected="false">Raposa da Sorte</button>
+    <button role="tab" data-tab="cascata" aria-selected="false">Cascata</button>
+    <button role="tab" data-tab="roda" aria-selected="false">Roda Dourada</button>
     <button role="tab" data-tab="simulador" aria-selected="false">Simulador de RTP</button>
     <button role="tab" data-tab="rodadas" aria-selected="false">Rodadas</button>
   </nav>
@@ -250,6 +262,103 @@ table.pay tr:last-child td { border-bottom: 0; }
     </div>
   </section>
 
+  <!-- RAPOSA -->
+  <section data-panel="raposa" class="game" hidden>
+    <div class="stage">
+      <div class="stage-head"><h2>Raposa da Sorte</h2><span class="label">Slot 3×3 · 5 linhas · bônus de repetição</span></div>
+      <div class="feature" id="fox-feature"></div>
+      <div class="reels" id="fox-reels"></div>
+      <div class="controls">
+        <div class="field"><label class="label" for="fox-bet">Aposta (R$)</label><input id="fox-bet" type="number" min="0.2" max="500" step="0.2" value="1"></div>
+        <button class="btn primary" id="fox-spin" type="button">Girar</button>
+      </div>
+      <div class="msg" id="fox-msg"></div>
+    </div>
+    <div class="side">
+      <div class="box">
+        <h3>Ficha técnica</h3>
+        <dl class="spec">
+          <dt>RTP teórico</dt><dd id="fox-rtp">–</dd>
+          <dt>Bênção da Raposa</dt><dd>1 em 13 giros</dd>
+          <dt>Tela cheia no bônus</dt><dd>3,6% dos bônus</dd>
+          <dt>Prêmio de tela cheia</dt><dd>10× o ganho</dd>
+          <dt>Ganho máximo</dt><dd>2.000× aposta</dd>
+          <dt>Volatilidade</dt><dd>Alta</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Bênção da Raposa</h3>
+        <p class="note" style="margin:0">De vez em quando a raposa escolhe um símbolo. A partir daí só caem esse símbolo e a raposa. As casas que acertam ficam presas e as vazias giram de novo, enquanto algo novo cair. Se a grade inteira encher, o ganho é multiplicado por 10.</p>
+      </div>
+      <div class="box">
+        <h3>Tabela de pagamento</h3>
+        <span class="note">3 iguais numa linha, pago sobre o valor da linha (aposta ÷ 5). A raposa substitui qualquer símbolo.</span>
+        <table class="pay" id="fox-paytable"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- CASCATA (PLINKO) -->
+  <section data-panel="cascata" class="game" hidden>
+    <div class="stage">
+      <div class="stage-head"><h2>Cascata</h2><span class="label">A bolinha desce pelos pinos</span></div>
+      <canvas class="plinko-canvas" id="plinko-canvas"></canvas>
+      <div class="chips" id="plinko-hist" aria-label="Últimos resultados"></div>
+      <div class="controls">
+        <div class="field"><label class="label" for="plinko-bet">Aposta (R$)</label><input id="plinko-bet" type="number" min="0.2" max="500" step="0.2" value="1"></div>
+        <div class="field"><label class="label" for="plinko-rows">Linhas</label><select id="plinko-rows"><option value="8">8</option><option value="12" selected>12</option><option value="16">16</option></select></div>
+        <div class="field"><label class="label" for="plinko-risk">Risco</label><select id="plinko-risk"><option value="low">Baixo</option><option value="mid" selected>Médio</option><option value="high">Alto</option></select></div>
+        <button class="btn primary" id="plinko-drop" type="button">Soltar bola</button>
+      </div>
+      <div class="msg" id="plinko-msg"></div>
+    </div>
+    <div class="side">
+      <div class="box">
+        <h3>Ficha técnica</h3>
+        <dl class="spec">
+          <dt>RTP desta configuração</dt><dd id="plinko-rtp">–</dd>
+          <dt>Ganho máximo aqui</dt><dd id="plinko-max">–</dd>
+          <dt>Chance do prêmio da ponta</dt><dd id="plinko-edge">–</dd>
+          <dt>Ganho máximo do jogo</dt><dd>1.000× (16 linhas, alto)</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Como o resultado é decidido</h3>
+        <p class="note" style="margin:0">Em cada pino o servidor sorteia esquerda ou direita, meio a meio. A casa final é o número de vezes que a bola foi para a direita, então a chance de cada casa segue a distribuição binomial. As pontas pagam muito porque quase nunca saem. Dá para soltar várias bolas ao mesmo tempo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RODA -->
+  <section data-panel="roda" class="game" hidden>
+    <div class="stage">
+      <div class="stage-head"><h2>Roda Dourada</h2><span class="label">Roda de prêmios com jackpot</span></div>
+      <canvas class="wheel-canvas" id="wheel-canvas"></canvas>
+      <div class="controls">
+        <div class="field"><label class="label" for="wheel-bet">Aposta (R$)</label><input id="wheel-bet" type="number" min="0.2" max="500" step="0.2" value="2"></div>
+        <button class="btn primary" id="wheel-spin" type="button">Girar a roda</button>
+      </div>
+      <div class="msg" id="wheel-msg"></div>
+    </div>
+    <div class="side">
+      <div class="box">
+        <h3>Ficha técnica</h3>
+        <dl class="spec">
+          <dt>RTP teórico</dt><dd id="wheel-rtp">–</dd>
+          <dt>Fatias de fora</dt><dd>40</dd>
+          <dt>Chance de cair no JP</dt><dd>1 em 40</dd>
+          <dt>Jackpot de 100×</dt><dd>1 em 800</dd>
+          <dt>Ganho máximo</dt><dd>100× aposta</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Prêmios</h3>
+        <table class="pay" id="wheel-paytable"></table>
+        <p class="note" style="margin:0">Cair na fatia JP gira a roda de dentro, que paga de 2× a 100×. Todas as fatias têm o mesmo tamanho, então o que se vê na roda é a chance real.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- SIMULATOR -->
   <section data-panel="simulador" hidden>
     <div class="sim-grid">
@@ -276,12 +385,14 @@ table.pay tr:last-child td { border-bottom: 0; }
         <div class="box">
           <h3>Configuração</h3>
           <div class="field"><label class="label" for="sim-game">Jogo</label>
-            <select id="sim-game"><option value="slot">Fruta Neon (slot)</option><option value="crash">Foguete (crash)</option><option value="mines">Minas</option></select></div>
+            <select id="sim-game"><option value="slot">Fruta Neon (slot)</option><option value="crash">Foguete (crash)</option><option value="mines">Minas</option><option value="fox">Raposa da Sorte (slot)</option><option value="plinko">Cascata (bolinha)</option><option value="wheel">Roda Dourada</option></select></div>
           <div class="field"><label class="label" for="sim-n">Rodadas</label>
             <select id="sim-n"><option value="100000">100 mil</option><option value="1000000" selected>1 milhão</option><option value="5000000">5 milhões</option><option value="10000000">10 milhões</option></select></div>
           <div class="field" data-for="crash"><label class="label" for="sim-target">Alvo de retirada (×)</label><input id="sim-target" type="number" min="1.01" step="0.01" value="2"></div>
           <div class="field" data-for="mines"><label class="label" for="sim-mines">Minas</label><input id="sim-mines" type="number" min="1" max="24" value="3"></div>
           <div class="field" data-for="mines"><label class="label" for="sim-picks">Casas abertas antes de retirar</label><input id="sim-picks" type="number" min="1" max="24" value="5"></div>
+          <div class="field" data-for="plinko"><label class="label" for="sim-rows">Linhas</label><select id="sim-rows"><option value="8">8</option><option value="12" selected>12</option><option value="16">16</option></select></div>
+          <div class="field" data-for="plinko"><label class="label" for="sim-risk">Risco</label><select id="sim-risk"><option value="low">Baixo</option><option value="mid" selected>Médio</option><option value="high">Alto</option></select></div>
           <button class="btn primary" id="sim-run" type="button">Rodar simulação</button>
         </div>
         <p class="note">O laboratório faz a mesma conta, só que com o RNG certificado e com volume ainda maior. Se o RTP medido ficar fora do intervalo de 95% em várias execuções, a tabela de pagamento ou o código estão errados.</p>
@@ -400,6 +511,124 @@ const MINES = {
   },
 };
 
+// Avalia as 5 linhas de uma grade 3×3. Casa vazia (null) não paga.
+function evalLines(grid, byId, lines) {
+  let pays = 0;
+  const wins = [];
+  lines.forEach((l, li) => {
+    const c = l.map(i => grid[i]);
+    if (c.includes(null)) return;
+    const base = c.find(s => s !== "W") || "W";
+    if (c.every(s => s === base || s === "W")) { pays += byId[base].pay; wins.push(li); }
+  });
+  return { pays, wins };
+}
+
+const FOX = {
+  symbols: [
+    { id: "W", g: "🦊", name: "Raposa (wild)",     w: 2,  pay: 200, fw: 0 },
+    { id: "P", g: "⛩️", name: "Portal",            w: 4,  pay: 80,  fw: 5 },
+    { id: "L", g: "🌕", name: "Lua cheia",         w: 7,  pay: 20,  fw: 10 },
+    { id: "S", g: "🎐", name: "Sino de vento",     w: 10, pay: 8,   fw: 20 },
+    { id: "F", g: "🌸", name: "Flor de cerejeira", w: 14, pay: 4,   fw: 30 },
+    { id: "D", g: "🍡", name: "Dango",             w: 18, pay: 3,   fw: 35 },
+  ],
+  featureChance: 1 / 13,
+  seed:   { s: 0.22, w: 0.06 },   // chance de cada casa já começar presa no bônus
+  respin: { s: 0.16, w: 0.04 },   // chance de uma casa vazia prender a cada repetição
+  fullMult: 10,
+  // Valor médio de um bônus em × aposta, medido em 20 milhões de bônus (erro ±0,04).
+  featureEV: 6.3575,
+};
+FOX.total = FOX.symbols.reduce((a, s) => a + s.w, 0);
+FOX.featSyms = FOX.symbols.filter(s => s.fw > 0);
+FOX.featTotal = FOX.featSyms.reduce((a, s) => a + s.fw, 0);
+FOX.byId = Object.fromEntries(FOX.symbols.map(s => [s.id, s]));
+
+FOX.spin = (rand, record = false) => {
+  if (rand() < FOX.featureChance) {
+    const sym = pickWeighted(rand(), FOX.featSyms.map(s => ({ ...s, w: s.fw })), FOX.featTotal).id;
+    const g = [];
+    for (let i = 0; i < 9; i++) {
+      const r = rand();
+      g.push(r < FOX.seed.s ? sym : r < FOX.seed.s + FOX.seed.w ? "W" : null);
+    }
+    const steps = record ? [g.slice()] : null;
+    for (;;) {
+      let landed = 0;
+      for (let i = 0; i < 9; i++) {
+        if (g[i] !== null) continue;
+        const r = rand();
+        if (r < FOX.respin.s) { g[i] = sym; landed++; }
+        else if (r < FOX.respin.s + FOX.respin.w) { g[i] = "W"; landed++; }
+      }
+      if (!landed) break;
+      if (record) steps.push(g.slice());
+      if (!g.includes(null)) break;
+    }
+    const full = !g.includes(null);
+    const { pays, wins } = evalLines(g, FOX.byId, SLOT.lines);
+    return { feature: true, sym, steps, grid: g, wins, full, x: (pays / 5) * (full ? FOX.fullMult : 1) };
+  }
+  const grid = [];
+  for (let i = 0; i < 9; i++) grid.push(pickWeighted(rand(), FOX.symbols, FOX.total).id);
+  const { pays, wins } = evalLines(grid, FOX.byId, SLOT.lines);
+  return { feature: false, grid, wins, full: false, x: pays / 5 };
+};
+
+// Giro normal: fórmula exata. Bônus: valor médio medido por simulação.
+FOX.theory = () => {
+  const p = id => FOX.byId[id].w / FOX.total;
+  const pw = p("W");
+  let ev = FOX.byId.W.pay * pw ** 3;
+  for (const s of FOX.symbols) if (s.id !== "W") ev += s.pay * ((p(s.id) + pw) ** 3 - pw ** 3);
+  const f = FOX.featureChance;
+  return (1 - f) * ev + f * FOX.featureEV;
+};
+
+const PLINKO = {
+  // Metade esquerda de cada tabela, da ponta até o centro; a direita é espelhada.
+  halves: {
+    8:  { low: [5, 2, 1.2, 1, 0.4], mid: [12, 3, 1.3, 0.7, 0.36], high: [28, 4, 1.5, 0.27, 0.2] },
+    12: { low: [9, 3, 1.6, 1.4, 1.1, 1, 0.42], mid: [30, 11, 4, 2, 1.1, 0.6, 0.22], high: [160, 24, 8, 2, 0.65, 0.2, 0.2] },
+    16: { low: [15, 9, 2, 1.4, 1.4, 1.2, 1.1, 1, 0.4], mid: [100, 40, 10, 5, 3, 1.5, 1, 0.5, 0.2], high: [1000, 130, 26, 9, 3.65, 2, 0.2, 0.2, 0.2] },
+  },
+  table(rows, risk) {
+    const h = PLINKO.halves[rows][risk];
+    return [...h, ...h.slice(0, -1).reverse()];
+  },
+  binom(n, k) { let r = 1; for (let i = 1; i <= k; i++) r = r * (n - k + i) / i; return r; },
+  prob(rows, k) { return PLINKO.binom(rows, k) / 2 ** rows; },
+  theory(rows, risk) {
+    return PLINKO.table(rows, risk).reduce((a, m, k) => a + PLINKO.prob(rows, k) * m, 0);
+  },
+  drop(rand, rows) {
+    const path = [];
+    for (let i = 0; i < rows; i++) path.push(rand() < 0.5 ? 1 : 0);
+    return path;
+  },
+};
+const RISK_LABEL = { low: "baixo", mid: "médio", high: "alto" };
+
+const WHEEL = (() => {
+  // Fatias de fora: 25 vazias, 15 com prêmio, 1 delas é o JP. Distribuídas para alternar.
+  const prizes = ["JP", 1.5, 2, 1.5, 3, 1.5, 2, 1.5, 5, 1.5, 2, 1.5, 3, 1.5, 2];
+  const outer = [];
+  prizes.forEach((p, i) => { outer.push(p); outer.push(0); if (i % 3 !== 2) outer.push(0); });
+  const innerPrizes = [100, 2, 3, 10, 2, 5, 3, 2, 10, 3, 2, 5, 3, 10, 2, 3, 5, 2, 10, 2];
+  return { outer, inner: innerPrizes };
+})();
+WHEEL.spin = (rand) => {
+  const oi = Math.floor(rand() * WHEEL.outer.length);
+  if (WHEEL.outer[oi] !== "JP") return { oi, ii: null, x: WHEEL.outer[oi] };
+  const ii = Math.floor(rand() * WHEEL.inner.length);
+  return { oi, ii, x: WHEEL.inner[ii] };
+};
+WHEEL.theory = () => {
+  const innerAvg = WHEEL.inner.reduce((a, b) => a + b, 0) / WHEEL.inner.length;
+  return WHEEL.outer.reduce((a, v) => a + (v === "JP" ? innerAvg : v), 0) / WHEEL.outer.length;
+};
+
 // ============================================================
 // SERVIDOR SIMULADO — carteira, rodadas abertas e registro.
 // Na versão real isto vira uma API (Node/Python) e o navegador só fala com ela.
@@ -483,6 +712,42 @@ const Server = (() => {
       return res;
     },
 
+    async foxSpin(bet) {
+      await wait();
+      debit(bet);
+      const id = ++seq;
+      const r = FOX.spin(RNG, true);
+      const payout = Math.floor(bet * r.x);
+      const detail = r.feature
+        ? `bênção ${FOX.byId[r.sym].g}${r.full ? " · tela cheia 10×" : ""}${r.wins.length ? ` · ${r.wins.length} linha(s)` : ""}`
+        : r.wins.length ? `${r.wins.length} linha(s)` : "sem prêmio";
+      settle({ id, game: "Raposa da Sorte", bet }, payout, detail);
+      return { id, ...r, payout };
+    },
+
+    async plinkoDrop(bet, rows, risk) {
+      await wait(40);
+      if (!PLINKO.halves[rows] || !PLINKO.halves[rows][risk]) throw new Error("Configuração inválida.");
+      debit(bet);
+      const id = ++seq;
+      const path = PLINKO.drop(RNG, rows);
+      const k = path.reduce((a, b) => a + b, 0);
+      const x = PLINKO.table(rows, risk)[k];
+      const payout = Math.floor(bet * x);
+      settle({ id, game: "Cascata", bet }, payout, `${rows} linhas · risco ${RISK_LABEL[risk]} · ${fmtX(x)}`);
+      return { id, path, k, x, payout };
+    },
+
+    async wheelSpin(bet) {
+      await wait();
+      debit(bet);
+      const id = ++seq;
+      const r = WHEEL.spin(RNG);
+      const payout = Math.floor(bet * r.x);
+      settle({ id, game: "Roda Dourada", bet }, payout, r.ii !== null ? `JP · roda de dentro ${fmtX(r.x)}` : r.x ? fmtX(r.x) : "sem prêmio");
+      return { id, ...r, payout };
+    },
+
     async minesStart(bet, m) {
       await wait();
       if (!(m >= 1 && m <= 24)) throw new Error("Escolha de 1 a 24 minas.");
@@ -554,6 +819,8 @@ function showTab(name) {
   document.querySelectorAll("[data-panel]").forEach(p => p.hidden = p.dataset.panel !== name);
   if (name === "crash") drawCrash(crashView);
   if (name === "simulador") drawConv();
+  if (name === "cascata") drawPlinko();
+  if (name === "roda") drawWheel();
 }
 tabs.forEach(t => t.onclick = () => { showTab(t.dataset.tab); try { history.replaceState(null, "", "#" + t.dataset.tab); } catch (e) {} });
 
@@ -786,6 +1053,286 @@ $("mines-btn").onclick = async () => {
   } catch (e) { say(msg, e.message, "err"); btn.disabled = false; }
 };
 
+// ---------- Raposa da Sorte ----------
+const foxCells = [];
+const foxStart = ["F","D","L","S","W","S","L","D","F"];
+for (let i = 0; i < 9; i++) {
+  const c = document.createElement("div");
+  c.className = "c"; c.textContent = FOX.byId[foxStart[i]].g;
+  $("fox-reels").appendChild(c); foxCells.push(c);
+}
+$("fox-rtp").textContent = "≈ " + pct(FOX.theory(), 1);
+$("fox-paytable").innerHTML = FOX.symbols.map(s => `<tr><td>${s.g} ${s.name}</td><td>${s.pay}×</td></tr>`).join("");
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function paintFox(grid, prev) {
+  grid.forEach((s, i) => {
+    const c = foxCells[i];
+    c.textContent = s ? FOX.byId[s].g : "·";
+    c.classList.toggle("empty", !s);
+    c.classList.toggle("lock", !!(prev && s && !prev[i]));
+  });
+}
+
+$("fox-spin").onclick = async () => {
+  const btn = $("fox-spin"), msg = $("fox-msg"), feat = $("fox-feature");
+  btn.disabled = true; say(msg, ""); feat.textContent = "";
+  foxCells.forEach(c => c.classList.remove("hit", "lock", "empty"));
+  let res;
+  try { res = await Server.foxSpin(readBet($("fox-bet"))); }
+  catch (e) { say(msg, e.message, "err"); btn.disabled = false; return; }
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const first = res.feature ? res.steps[0] : res.grid;
+  const glyph = () => FOX.symbols[Math.floor(Math.random() * FOX.symbols.length)].g;
+  await Promise.all([0, 1, 2].map(col => new Promise(done => {
+    const idx = [col, col + 3, col + 6];
+    idx.forEach(i => foxCells[i].classList.add("blur"));
+    const iv = setInterval(() => idx.forEach(i => foxCells[i].textContent = glyph()), 60);
+    setTimeout(() => {
+      clearInterval(iv);
+      idx.forEach(i => foxCells[i].classList.remove("blur"));
+      if (col === 2 || reduced) paintFox(first);
+      done();
+    }, reduced ? 0 : 450 + col * 260);
+  })));
+  paintFox(first);
+  if (res.feature) {
+    feat.textContent = `Bênção da Raposa! Só caem ${FOX.byId[res.sym].g} e 🦊`;
+    for (let s = 1; s < res.steps.length; s++) {
+      await sleep(reduced ? 0 : 700);
+      paintFox(res.steps[s], res.steps[s - 1]);
+    }
+    await sleep(reduced ? 0 : 400);
+    foxCells.forEach(c => c.classList.remove("lock"));
+    if (res.full) feat.textContent = "Tela cheia! Ganho × 10";
+  }
+  res.wins.forEach(li => SLOT.lines[li].forEach(i => foxCells[i].classList.add("hit")));
+  if (res.payout > 0) say(msg, `Ganhou ${BRL(res.payout)} · ${fmtX(res.x)} a aposta · rodada #${res.id}`, "win");
+  else say(msg, `Sem prêmio · rodada #${res.id}`, "");
+  btn.disabled = false;
+};
+
+// ---------- Cascata (bolinha) ----------
+const pc = $("plinko-canvas");
+const balls = [];
+const binFlash = {};
+const plinkoHist = [];
+let plinkoAnim = false;
+const STEP_MS = 140;
+function plinkoCfg() { return { rows: +$("plinko-rows").value, risk: $("plinko-risk").value }; }
+function binColor(m, col) {
+  if (m >= 10) return col("--loss");
+  if (m >= 2) return col("--accent");
+  if (m >= 1) return col("--win");
+  return col("--line");
+}
+function plinkoInfo() {
+  const { rows, risk } = plinkoCfg();
+  const t = PLINKO.table(rows, risk);
+  $("plinko-rtp").textContent = pct(PLINKO.theory(rows, risk));
+  $("plinko-max").textContent = intBR(t[0]) + "×";
+  const pEdge = 2 * PLINKO.prob(rows, 0);
+  $("plinko-edge").textContent = "1 em " + intBR(Math.round(1 / pEdge));
+  drawPlinko();
+}
+function plinkoGeom(W, H, rows) {
+  const top = H * 0.07, bottom = H * 0.86;
+  const gapY = (bottom - top) / rows;
+  const gapX = Math.min(W / (rows + 2), gapY * 1.25);
+  return { cx: W / 2, top, gapY, gapX, binY: top + rows * gapY };
+}
+function ballPos(b, now, g) {
+  const s = Math.min(b.path.length, (now - b.t0) / STEP_MS);
+  const i = Math.floor(s), f = s - i;
+  const rightsUpTo = r => b.path.slice(0, r).reduce((a, v) => a + v, 0);
+  const off = r => rightsUpTo(r) - r / 2;
+  if (i >= b.path.length) return { x: g.cx + off(b.path.length) * g.gapX, y: g.binY - g.gapY * 0.35, done: true };
+  const x0 = g.cx + off(i) * g.gapX, x1 = g.cx + off(i + 1) * g.gapX;
+  const y0 = g.top + i * g.gapY, y1 = g.top + (i + 1) * g.gapY;
+  const hop = g.gapY * 0.45 * 4 * f * (1 - f);
+  return { x: x0 + (x1 - x0) * f, y: y0 + (y1 - y0) * f * f - hop - g.gapY * 0.3, done: false };
+}
+function drawPlinko() {
+  const dpr = window.devicePixelRatio || 1;
+  const W = pc.clientWidth, H = pc.clientHeight;
+  if (!W) return;
+  if (pc.width !== Math.round(W * dpr) || pc.height !== Math.round(H * dpr)) { pc.width = Math.round(W * dpr); pc.height = Math.round(H * dpr); }
+  const ctx = pc.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const css = getComputedStyle(document.documentElement);
+  const col = n => css.getPropertyValue(n).trim();
+  const { rows, risk } = plinkoCfg();
+  const g = plinkoGeom(W, H, rows);
+  const table = PLINKO.table(rows, risk);
+  const pegR = Math.max(2, g.gapX * 0.09);
+  ctx.fillStyle = col("--muted");
+  for (let r = 0; r < rows; r++) {
+    for (let p = 0; p < r + 3; p++) {
+      const x = g.cx + (p - (r + 2) / 2) * g.gapX, y = g.top + r * g.gapY;
+      ctx.beginPath(); ctx.arc(x, y, pegR, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  const now = performance.now();
+  const bw = g.gapX * 0.9, bh = Math.min(g.gapY * 0.9, 34);
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `600 ${Math.max(8, Math.min(13, bw * 0.3))}px JetBrains Mono, monospace`;
+  table.forEach((m, k) => {
+    const x = g.cx + (k - rows / 2) * g.gapX;
+    const lit = binFlash[k] && now - binFlash[k] < 400;
+    const c = binColor(m, col);
+    ctx.fillStyle = c;
+    ctx.globalAlpha = lit ? 1 : 0.8;
+    const y = g.binY + (lit ? 4 : 0);
+    ctx.beginPath(); ctx.roundRect(x - bw / 2, y, bw, bh, 5); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = m >= 1 ? "#10161b" : col("--fg");
+    ctx.fillText(m >= 100 ? intBR(m) : String(m).replace(".", ","), x, y + bh / 2 + 1);
+  });
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  const ballR = Math.max(4, g.gapX * 0.18);
+  ctx.fillStyle = col("--accent");
+  for (const b of balls) {
+    const p = ballPos(b, now, g);
+    ctx.beginPath(); ctx.arc(p.x, p.y, ballR, 0, Math.PI * 2); ctx.fill();
+  }
+}
+function plinkoLoop() {
+  const now = performance.now();
+  for (let i = balls.length - 1; i >= 0; i--) {
+    const b = balls[i];
+    if (now - b.t0 >= b.path.length * STEP_MS) {
+      balls.splice(i, 1);
+      binFlash[b.k] = now;
+      plinkoHist.unshift(b.x); if (plinkoHist.length > 14) plinkoHist.pop();
+      $("plinko-hist").innerHTML = plinkoHist.map(x => `<span class="chip ${x >= 1 ? "hi" : "lo"}">${fmtX(x)}</span>`).join("");
+      say($("plinko-msg"), b.payout >= b.bet ? `Caiu em ${fmtX(b.x)} · ganhou ${BRL(b.payout)} · rodada #${b.id}` : `Caiu em ${fmtX(b.x)} · voltou ${BRL(b.payout)} · rodada #${b.id}`, b.payout >= b.bet ? "win" : "");
+    }
+  }
+  drawPlinko();
+  const flashing = Object.values(binFlash).some(t => now - t < 400);
+  if (balls.length || flashing) requestAnimationFrame(plinkoLoop); else plinkoAnim = false;
+  $("plinko-rows").disabled = $("plinko-risk").disabled = balls.length > 0;
+}
+$("plinko-drop").onclick = async () => {
+  const { rows, risk } = plinkoCfg();
+  const bet = readBet($("plinko-bet"));
+  try {
+    const r = await Server.plinkoDrop(bet, rows, risk);
+    balls.push({ ...r, bet, t0: performance.now() });
+    $("plinko-rows").disabled = $("plinko-risk").disabled = true;
+    if (!plinkoAnim) { plinkoAnim = true; requestAnimationFrame(plinkoLoop); }
+  } catch (e) { say($("plinko-msg"), e.message, "err"); }
+};
+$("plinko-rows").onchange = $("plinko-risk").onchange = plinkoInfo;
+window.addEventListener("resize", drawPlinko);
+plinkoInfo();
+
+// ---------- Roda Dourada ----------
+const wc = $("wheel-canvas");
+let wheelRot = 0, innerRot = 0, wheelHit = null;
+const fmtPrize = v => v === "JP" ? "JP" : v === 0 ? "0" : String(v).replace(".", ",") + "×";
+function sliceColor(v, col) {
+  if (v === "JP") return col("--loss");
+  if (v === 0) return col("--cell");
+  if (v >= 10) return col("--loss");
+  if (v >= 5) return col("--accent");
+  if (v >= 3) return "#8f7ae6";
+  if (v >= 2) return "#4a90d9";
+  return "#2f8f7a";
+}
+$("wheel-rtp").textContent = pct(WHEEL.theory());
+(() => {
+  const count = {};
+  WHEEL.outer.forEach(v => count[v] = (count[v] || 0) + 1);
+  const rows = Object.keys(count).filter(k => k !== "0" && k !== "JP").map(Number).sort((a, b) => a - b)
+    .map(v => `<tr><td>${fmtPrize(v)}</td><td>${count[v]} de 40 fatias</td></tr>`);
+  const ic = {};
+  WHEEL.inner.forEach(v => ic[v] = (ic[v] || 0) + 1);
+  rows.push(`<tr><td>JP → roda de dentro</td><td>1 de 40 fatias</td></tr>`);
+  rows.push(...Object.keys(ic).map(Number).sort((a, b) => a - b).map(v => `<tr><td>&nbsp;&nbsp;↳ ${v}×</td><td>${ic[v]} de 20</td></tr>`));
+  rows.push(`<tr><td>Sem prêmio</td><td>${count[0]} de 40 fatias</td></tr>`);
+  $("wheel-paytable").innerHTML = rows.join("");
+})();
+function drawWheel() {
+  const dpr = window.devicePixelRatio || 1;
+  const S = wc.clientWidth;
+  if (!S) return;
+  if (wc.width !== Math.round(S * dpr)) { wc.width = wc.height = Math.round(S * dpr); }
+  const ctx = wc.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, S, S);
+  const css = getComputedStyle(document.documentElement);
+  const col = n => css.getPropertyValue(n).trim();
+  const c = S / 2, R = S * 0.46, r0 = R * 0.58, r1 = R * 0.2;
+  const ring = (list, rot, ro, ri, hit) => {
+    const seg = (Math.PI * 2) / list.length;
+    list.forEach((v, i) => {
+      const a0 = -Math.PI / 2 + i * seg + rot - seg / 2, a1 = a0 + seg;
+      ctx.beginPath(); ctx.arc(c, c, ro, a0, a1); ctx.arc(c, c, ri, a1, a0, true); ctx.closePath();
+      ctx.fillStyle = sliceColor(v, col); ctx.globalAlpha = hit === null || hit === i ? 1 : 0.55; ctx.fill(); ctx.globalAlpha = 1;
+      ctx.strokeStyle = col("--bg"); ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.save();
+      ctx.translate(c, c); ctx.rotate(a0 + seg / 2);
+      ctx.fillStyle = v === 0 ? col("--muted") : "#fff";
+      ctx.font = `700 ${Math.max(8, Math.min(13, (ro - ri) * 0.16))}px JetBrains Mono, monospace`;
+      ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      ctx.fillText(fmtPrize(v), ro - 6, 0);
+      ctx.restore();
+    });
+  };
+  ctx.beginPath(); ctx.arc(c, c, R + 6, 0, Math.PI * 2); ctx.fillStyle = col("--accent"); ctx.fill();
+  ctx.beginPath(); ctx.arc(c, c, R, 0, Math.PI * 2); ctx.fillStyle = col("--bg"); ctx.fill();
+  ring(WHEEL.outer, wheelRot, R, r0, wheelHit && wheelHit.stage === "done" ? wheelHit.oi : null);
+  ring(WHEEL.inner, innerRot, r0 - 4, r1, wheelHit && wheelHit.stage === "done" && wheelHit.ii !== null ? wheelHit.ii : null);
+  ctx.beginPath(); ctx.arc(c, c, r1, 0, Math.PI * 2); ctx.fillStyle = col("--panel"); ctx.fill();
+  ctx.fillStyle = col("--accent"); ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `800 ${Math.max(12, r1 * 0.42)}px Bricolage Grotesque, sans-serif`;
+  ctx.fillText(wheelHit && wheelHit.stage === "done" ? (wheelHit.x ? fmtX(wheelHit.x) : "0×") : "JP 100×", c, c);
+  // ponteiro
+  ctx.beginPath(); ctx.moveTo(c - 11, c - R - 12); ctx.lineTo(c + 11, c - R - 12); ctx.lineTo(c, c - R + 14); ctx.closePath();
+  ctx.fillStyle = col("--fg"); ctx.fill();
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+}
+function spinTo(getRot, setRot, index, count, ms) {
+  const seg = (Math.PI * 2) / count;
+  const from = getRot();
+  const jitter = (Math.random() - 0.5) * seg * 0.6;
+  const want = -index * seg + jitter;
+  const delta = (((want - from) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+  const to = from + Math.PI * 2 * 5 + delta;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return new Promise(done => {
+    if (reduced) { setRot(to); drawWheel(); return done(); }
+    const t0 = performance.now();
+    const frame = () => {
+      const t = Math.min(1, (performance.now() - t0) / ms);
+      setRot(from + (to - from) * (1 - Math.pow(1 - t, 4)));
+      drawWheel();
+      t < 1 ? requestAnimationFrame(frame) : done();
+    };
+    requestAnimationFrame(frame);
+  });
+}
+$("wheel-spin").onclick = async () => {
+  const btn = $("wheel-spin"), msg = $("wheel-msg");
+  btn.disabled = true; say(msg, ""); wheelHit = null;
+  let res;
+  try { res = await Server.wheelSpin(readBet($("wheel-bet"))); }
+  catch (e) { say(msg, e.message, "err"); btn.disabled = false; return; }
+  await spinTo(() => wheelRot, v => wheelRot = v, res.oi, WHEEL.outer.length, 4200);
+  if (res.ii !== null) {
+    say(msg, "JP! Girando a roda de dentro…", "win");
+    await sleep(500);
+    await spinTo(() => innerRot, v => innerRot = v, res.ii, WHEEL.inner.length, 3200);
+  }
+  wheelHit = { ...res, stage: "done" };
+  drawWheel();
+  if (res.payout > 0) say(msg, `${res.ii !== null ? "Jackpot! " : ""}Ganhou ${BRL(res.payout)} · ${fmtX(res.x)} a aposta · rodada #${res.id}`, "win");
+  else say(msg, `Sem prêmio · rodada #${res.id}`, "");
+  btn.disabled = false;
+};
+window.addEventListener("resize", drawWheel);
+
 // ---------- Simulador ----------
 const BUCKETS = [
   { label: "Sem retorno (0×)", test: x => x === 0 },
@@ -808,6 +1355,13 @@ simSetup();
 function simRound(g, p) {
   if (g === "slot") return SLOT.spin(RNG).x;
   if (g === "crash") return CRASH.point(RNG) >= p.target ? p.target : 0;
+  if (g === "fox") return FOX.spin(RNG).x;
+  if (g === "wheel") return WHEEL.spin(RNG).x;
+  if (g === "plinko") {
+    let k = 0;
+    for (let i = 0; i < p.rows; i++) if (RNG() < 0.5) k++;
+    return p.table[k];
+  }
   // Minas: abrir k casas é tirar k vezes sem reposição de uma urna com m minas.
   for (let i = 0; i < p.picks; i++) if (RNG() < p.mines / (MINES.size - i)) return 0;
   return MINES.mult(p.mines, p.picks);
@@ -815,6 +1369,12 @@ function simRound(g, p) {
 function simTheory(g, p) {
   if (g === "slot") return { rtp: SLOT.theory(), hit: null };
   if (g === "crash") return { rtp: 0.97, hit: 0.97 / p.target };
+  if (g === "fox") return { rtp: FOX.theory(), hit: null };
+  if (g === "plinko") return { rtp: PLINKO.theory(p.rows, p.risk), hit: 1 };
+  if (g === "wheel") {
+    const zeros = WHEEL.outer.filter(v => v === 0).length;
+    return { rtp: WHEEL.theory(), hit: 1 - zeros / WHEEL.outer.length };
+  }
   let hit = 1;
   for (let i = 0; i < p.picks; i++) hit *= (MINES.size - p.mines - i) / (MINES.size - i);
   return { rtp: 0.97, hit };
@@ -828,6 +1388,8 @@ $("sim-run").onclick = () => {
     mines: Math.min(24, Math.max(1, parseInt($("sim-mines").value || "3", 10))),
   };
   p.picks = Math.min(25 - p.mines, Math.max(1, parseInt($("sim-picks").value || "5", 10)));
+  p.rows = +$("sim-rows").value; p.risk = $("sim-risk").value;
+  p.table = PLINKO.table(p.rows, p.risk);
   $("sim-picks").value = p.picks;
   sim = { g, p, N, n: 0, sum: 0, sum2: 0, hits: 0, max: 0, buckets: BUCKETS.map(() => 0), pts: [], theory: simTheory(g, p), t0: performance.now() };
   simRunning = true;
@@ -932,7 +1494,7 @@ function renderHistory() {
 // Início
 renderHistory();
 showTab((location.hash || "").slice(1));
-if (document.fonts) document.fonts.ready.then(() => { drawCrash(crashView); drawConv(); });
+if (document.fonts) document.fonts.ready.then(() => { drawCrash(crashView); drawConv(); drawPlinko(); drawWheel(); });
 </script>
 </body>
 </html>
