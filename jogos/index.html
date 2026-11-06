@@ -1,0 +1,929 @@
+<title>Bancada de Jogos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: bancada de testes de estúdio. Cabeçalho com carteira, abas por jogo, palco à esquerda e ficha técnica à direita. Visual escuro único, de propósito. */
+:root {
+  --bg: #0e1317;
+  --panel: #151c22;
+  --cell: #1b242c;
+  --line: #27323c;
+  --fg: #e7ebee;
+  --muted: #8b99a5;
+  --accent: #f0b445;
+  --accent-ink: #1d1505;
+  --win: #4ccf89;
+  --loss: #ff6a5c;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+.label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); font-weight: 600; }
+
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.brand h1 { font-size: 28px; font-weight: 800; }
+.tag { font-size: 12px; color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); padding: 2px 9px; border-radius: 99px; }
+.wallet { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 8px 8px 14px; }
+.wallet .num { font-size: 20px; font-weight: 600; }
+.wallet.flash-win .num { color: var(--win); }
+.wallet.flash-loss .num { color: var(--loss); }
+
+nav { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+nav button { background: none; border: 0; color: var(--muted); font: 600 15px var(--body); padding: 10px 14px; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; }
+nav button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+nav button:hover { color: var(--fg); }
+
+.game { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+@media (max-width: 860px) { .game { grid-template-columns: minmax(0, 1fr); } }
+.stage { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.stage-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.stage-head h2 { font-size: 24px; font-weight: 800; }
+.side { display: grid; gap: 16px; min-width: 0; }
+.box { border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; }
+.box h3 { font-size: 15px; font-weight: 600; font-family: var(--body); }
+dl.spec { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; font-size: 14px; }
+dl.spec dt { color: var(--muted); }
+dl.spec dd { margin: 0; text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; align-items: end; }
+.field { display: grid; gap: 5px; }
+.field input, .field select { background: var(--cell); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: 500 15px var(--mono); width: 100%; }
+.btn { font: 700 15px var(--body); border-radius: 10px; padding: 11px 18px; border: 1px solid var(--line); background: var(--cell); color: var(--fg); cursor: pointer; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.cash { background: var(--win); color: #06210f; border-color: var(--win); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn:focus-visible, nav button:focus-visible, input:focus-visible, select:focus-visible, .tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.msg { min-height: 24px; font-weight: 600; }
+.msg.win { color: var(--win); } .msg.loss { color: var(--loss); } .msg.err { color: var(--loss); }
+
+/* Slot */
+.reels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 420px; width: 100%; margin: 0 auto; }
+.reels .c { aspect-ratio: 1; max-width: 100%; background: var(--cell); border: 1px solid var(--line); border-radius: 14px; display: grid; place-items: center; font-size: clamp(34px, 9vw, 58px); transition: border-color .2s, background .2s; user-select: none; }
+.reels .c.hit { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, var(--cell)); }
+.reels .c.blur { filter: blur(1.5px); opacity: .75; }
+.multbar { text-align: center; font: 800 18px var(--display); color: var(--accent); min-height: 27px; }
+table.pay { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.pay td { padding: 4px 0; border-bottom: 1px solid var(--line); }
+table.pay td:last-child { text-align: right; font-family: var(--mono); }
+table.pay tr:last-child td { border-bottom: 0; }
+
+/* Crash */
+.crash-canvas { width: 100%; aspect-ratio: 16 / 9; max-width: 100%; display: block; background: var(--cell); border-radius: 12px; border: 1px solid var(--line); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 600 12px var(--mono); padding: 3px 8px; border-radius: 99px; background: var(--cell); border: 1px solid var(--line); }
+.chip.hi { color: var(--win); } .chip.lo { color: var(--loss); }
+
+/* Mines */
+.board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 440px; width: 100%; margin: 0 auto; }
+.tile { aspect-ratio: 1; max-width: 100%; border-radius: 12px; border: 1px solid var(--line); background: var(--cell); font-size: clamp(20px, 6vw, 30px); cursor: pointer; color: var(--fg); }
+.tile:hover:not(:disabled) { border-color: var(--accent); }
+.tile:disabled { cursor: default; }
+.tile.safe { background: color-mix(in srgb, var(--win) 18%, var(--cell)); border-color: var(--win); }
+.tile.boom { background: color-mix(in srgb, var(--loss) 30%, var(--cell)); border-color: var(--loss); }
+.tile.ghost { opacity: .45; }
+.mines-mult { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.mines-mult .num { font-size: 22px; font-weight: 600; }
+
+/* Simulator */
+.sim-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+@media (max-width: 860px) { .sim-grid { grid-template-columns: minmax(0, 1fr); } }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.stat { background: var(--cell); border-radius: 12px; padding: 12px 14px; display: grid; gap: 2px; }
+.stat .v { font: 600 22px var(--mono); font-variant-numeric: tabular-nums; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.conv { width: 100%; height: 240px; display: block; }
+.progress { height: 6px; background: var(--cell); border-radius: 99px; overflow: hidden; }
+.progress div { height: 100%; width: 0; background: var(--accent); transition: width .1s; }
+.dist { width: 100%; border-collapse: collapse; font-size: 14px; }
+.dist th, .dist td { text-align: left; padding: 5px 8px 5px 0; border-bottom: 1px solid var(--line); }
+.dist th { font-weight: 600; color: var(--muted); font-size: 12px; }
+.dist td.n { font-family: var(--mono); text-align: right; }
+.dist .bar { height: 8px; background: var(--accent); border-radius: 4px; min-width: 1px; }
+.scroll { overflow-x: auto; }
+
+/* History */
+.hist { width: 100%; border-collapse: collapse; font-size: 13px; }
+.hist th, .hist td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.hist th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.hist td.r { text-align: right; font-family: var(--mono); }
+.pos { color: var(--win); } .neg { color: var(--loss); }
+.note { color: var(--muted); font-size: 13px; max-width: 70ch; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>Bancada de Jogos</h1>
+      <span class="tag">Ambiente de teste · saldo fictício</span>
+    </div>
+    <div class="wallet" id="wallet">
+      <div><div class="label">Saldo</div><div class="num" id="balance">R$ 1.000,00</div></div>
+      <button class="btn" id="refill" type="button">Recarregar</button>
+    </div>
+  </header>
+
+  <nav role="tablist">
+    <button role="tab" data-tab="slot" aria-selected="true">Fruta Neon</button>
+    <button role="tab" data-tab="crash" aria-selected="false">Foguete</button>
+    <button role="tab" data-tab="minas" aria-selected="false">Minas</button>
+    <button role="tab" data-tab="simulador" aria-selected="false">Simulador de RTP</button>
+    <button role="tab" data-tab="rodadas" aria-selected="false">Rodadas</button>
+  </nav>
+
+  <!-- SLOT -->
+  <section data-panel="slot" class="game">
+    <div class="stage">
+      <div class="stage-head"><h2>Fruta Neon</h2><span class="label">Slot 3×3 · 5 linhas</span></div>
+      <div class="reels" id="reels"></div>
+      <div class="multbar" id="slot-mult"></div>
+      <div class="controls">
+        <div class="field"><label class="label" for="slot-bet">Aposta (R$)</label><input id="slot-bet" type="number" min="0.2" max="500" step="0.2" value="1"></div>
+        <button class="btn primary" id="slot-spin" type="button">Girar</button>
+      </div>
+      <div class="msg" id="slot-msg"></div>
+    </div>
+    <div class="side">
+      <div class="box">
+        <h3>Ficha técnica</h3>
+        <dl class="spec">
+          <dt>RTP teórico</dt><dd id="slot-rtp">–</dd>
+          <dt>Linhas ganhadoras</dt><dd>3 horizontais + 2 diagonais</dd>
+          <dt>Multiplicador aleatório</dt><dd>10% dos giros</dd>
+          <dt>Valores do multiplicador</dt><dd>2× 3× 5× 10×</dd>
+          <dt>Ganho máximo</dt><dd>2.500× aposta</dd>
+          <dt>Volatilidade</dt><dd>Média-alta</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Tabela de pagamento</h3>
+        <span class="note">3 iguais numa linha. Pago sobre o valor da linha (aposta ÷ 5). A estrela substitui qualquer símbolo.</span>
+        <table class="pay" id="paytable"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- CRASH -->
+  <section data-panel="crash" class="game" hidden>
+    <div class="stage">
+      <div class="stage-head"><h2>Foguete</h2><span class="label">Crash · retire antes de explodir</span></div>
+      <canvas class="crash-canvas" id="crash-canvas"></canvas>
+      <div class="chips" id="crash-hist" aria-label="Últimos resultados"></div>
+      <div class="controls">
+        <div class="field"><label class="label" for="crash-bet">Aposta (R$)</label><input id="crash-bet" type="number" min="0.2" max="500" step="0.2" value="5"></div>
+        <div class="field"><label class="label" for="crash-auto">Retirada automática (×)</label><input id="crash-auto" type="number" min="1.01" step="0.01" placeholder="desligada"></div>
+        <button class="btn primary" id="crash-btn" type="button">Apostar</button>
+      </div>
+      <div class="msg" id="crash-msg"></div>
+    </div>
+    <div class="side">
+      <div class="box">
+        <h3>Ficha técnica</h3>
+        <dl class="spec">
+          <dt>RTP teórico</dt><dd>97,00%</dd>
+          <dt>Vantagem da casa</dt><dd>3%</dd>
+          <dt>Chance de passar de 2×</dt><dd>48,5%</dd>
+          <dt>Chance de passar de 10×</dt><dd>9,7%</dd>
+          <dt>Explosão imediata (1,00×)</dt><dd>3%</dd>
+          <dt>Teto</dt><dd>10.000×</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Como o resultado é decidido</h3>
+        <p class="note" style="margin:0">No momento da aposta o servidor sorteia o ponto de explosão: P(passar de x) = 0,97 ÷ x. O navegador só recebe a subida do multiplicador e nunca sabe onde ele vai parar. Por isso o RTP é 97% para qualquer alvo de retirada.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MINES -->
+  <section data-panel="minas" class="game" hidden>
+    <div class="stage">
+      <div class="stage-head"><h2>Minas</h2><span class="label">Grade 5×5 · escolha casas seguras</span></div>
+      <div class="mines-mult">
+        <div><div class="label">Multiplicador atual</div><div class="num" id="mines-cur">–</div></div>
+        <div><div class="label">Próxima casa</div><div class="num" id="mines-next">–</div></div>
+        <div><div class="label">Retirada agora</div><div class="num" id="mines-pay">–</div></div>
+      </div>
+      <div class="board" id="board"></div>
+      <div class="controls">
+        <div class="field"><label class="label" for="mines-bet">Aposta (R$)</label><input id="mines-bet" type="number" min="0.2" max="500" step="0.2" value="2"></div>
+        <div class="field"><label class="label" for="mines-count">Minas</label><select id="mines-count"></select></div>
+        <button class="btn primary" id="mines-btn" type="button">Começar</button>
+      </div>
+      <div class="msg" id="mines-msg"></div>
+    </div>
+    <div class="side">
+      <div class="box">
+        <h3>Ficha técnica</h3>
+        <dl class="spec">
+          <dt>RTP teórico</dt><dd>97,00%</dd>
+          <dt>Vantagem da casa</dt><dd>3%</dd>
+          <dt>Minas por rodada</dt><dd>1 a 24</dd>
+          <dt>Ganho máximo</dt><dd id="mines-max">–</dd>
+        </dl>
+      </div>
+      <div class="box">
+        <h3>Fórmula do multiplicador</h3>
+        <p class="note" style="margin:0">Depois de k casas seguras com m minas, o multiplicador é 0,97 × C(25, k) ÷ C(25 − m, k). É o inverso da chance de chegar até ali, menos os 3% da casa. As minas ficam só no servidor até a rodada fechar.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIMULATOR -->
+  <section data-panel="simulador" hidden>
+    <div class="sim-grid">
+      <div class="stage">
+        <div class="stage-head"><h2>Simulador de RTP</h2><span class="label">Mesmo motor matemático dos jogos, sem tela</span></div>
+        <div class="stats">
+          <div class="stat"><span class="label">RTP medido</span><span class="v" id="s-rtp">–</span><span class="s" id="s-rtp-t">teórico –</span></div>
+          <div class="stat"><span class="label">Rodadas</span><span class="v" id="s-n">–</span><span class="s" id="s-time">–</span></div>
+          <div class="stat"><span class="label">Frequência de prêmio</span><span class="v" id="s-hit">–</span><span class="s" id="s-hit-t">rodadas com retorno</span></div>
+          <div class="stat"><span class="label">Maior ganho</span><span class="v" id="s-max">–</span><span class="s">× aposta</span></div>
+          <div class="stat"><span class="label">Desvio padrão</span><span class="v" id="s-sd">–</span><span class="s" id="s-vol">volatilidade por rodada</span></div>
+          <div class="stat"><span class="label">Intervalo 95%</span><span class="v" id="s-ci">–</span><span class="s">margem do RTP medido</span></div>
+        </div>
+        <div class="progress"><div id="s-prog"></div></div>
+        <div>
+          <div class="label" style="margin-bottom:6px">Convergência do RTP (linha tracejada = teórico)</div>
+          <canvas class="conv" id="s-chart"></canvas>
+        </div>
+        <div class="scroll">
+          <table class="dist" id="s-dist"></table>
+        </div>
+      </div>
+      <div class="side">
+        <div class="box">
+          <h3>Configuração</h3>
+          <div class="field"><label class="label" for="sim-game">Jogo</label>
+            <select id="sim-game"><option value="slot">Fruta Neon (slot)</option><option value="crash">Foguete (crash)</option><option value="mines">Minas</option></select></div>
+          <div class="field"><label class="label" for="sim-n">Rodadas</label>
+            <select id="sim-n"><option value="100000">100 mil</option><option value="1000000" selected>1 milhão</option><option value="5000000">5 milhões</option><option value="10000000">10 milhões</option></select></div>
+          <div class="field" data-for="crash"><label class="label" for="sim-target">Alvo de retirada (×)</label><input id="sim-target" type="number" min="1.01" step="0.01" value="2"></div>
+          <div class="field" data-for="mines"><label class="label" for="sim-mines">Minas</label><input id="sim-mines" type="number" min="1" max="24" value="3"></div>
+          <div class="field" data-for="mines"><label class="label" for="sim-picks">Casas abertas antes de retirar</label><input id="sim-picks" type="number" min="1" max="24" value="5"></div>
+          <button class="btn primary" id="sim-run" type="button">Rodar simulação</button>
+        </div>
+        <p class="note">O laboratório faz a mesma conta, só que com o RNG certificado e com volume ainda maior. Se o RTP medido ficar fora do intervalo de 95% em várias execuções, a tabela de pagamento ou o código estão errados.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section data-panel="rodadas" hidden>
+    <div class="stage">
+      <div class="stage-head"><h2>Rodadas</h2><span class="label">Registro do servidor · base da auditoria</span></div>
+      <div class="scroll"><table class="hist" id="hist"></table></div>
+      <p class="note" id="hist-empty">Nenhuma rodada ainda. Jogue em qualquer aba e cada aposta aparece aqui com seu número, valor e resultado.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+// ============================================================
+// RNG — gerador de teste baseado em crypto.getRandomValues.
+// Em produção é trocado pelo RNG certificado; o resto do código não muda.
+// ============================================================
+const RNG = (() => {
+  const buf = new Uint32Array(8192);
+  let i = buf.length;
+  return () => {
+    if (i >= buf.length) { crypto.getRandomValues(buf); i = 0; }
+    return buf[i++] / 4294967296;
+  };
+})();
+
+function pickWeighted(r, items, total) {
+  let acc = r * total;
+  for (const it of items) { acc -= it.w; if (acc < 0) return it; }
+  return items[items.length - 1];
+}
+
+// ============================================================
+// MOTORES MATEMÁTICOS — funções puras, usadas pelo servidor e pelo simulador.
+// ============================================================
+const SLOT = {
+  symbols: [
+    { id: "W", g: "⭐", name: "Estrela (wild)", w: 3,  pay: 250 },
+    { id: "D", g: "💎", name: "Diamante",       w: 4,  pay: 100 },
+    { id: "S", g: "7️⃣", name: "Sete",           w: 6,  pay: 50 },
+    { id: "B", g: "🔔", name: "Sino",           w: 9,  pay: 25 },
+    { id: "C", g: "🍀", name: "Trevo",          w: 12, pay: 12 },
+    { id: "L", g: "🍋", name: "Limão",          w: 16, pay: 8 },
+    { id: "K", g: "🍒", name: "Cereja",         w: 20, pay: 5 },
+  ],
+  lines: [[0,1,2],[3,4,5],[6,7,8],[0,4,8],[6,4,2]],
+  multChance: 0.10,
+  mults: [{ v: 2, w: 50 }, { v: 3, w: 30 }, { v: 5, w: 15 }, { v: 10, w: 5 }],
+};
+SLOT.total = SLOT.symbols.reduce((a, s) => a + s.w, 0);
+SLOT.multTotal = SLOT.mults.reduce((a, m) => a + m.w, 0);
+SLOT.byId = Object.fromEntries(SLOT.symbols.map(s => [s.id, s]));
+
+// Retorna o resultado de um giro. x = pagamento em múltiplos da aposta total.
+SLOT.spin = (rand) => {
+  const grid = [];
+  for (let i = 0; i < 9; i++) grid.push(pickWeighted(rand(), SLOT.symbols, SLOT.total).id);
+  let linePays = 0;
+  const wins = [];
+  for (let li = 0; li < SLOT.lines.length; li++) {
+    const [a, b, c] = SLOT.lines[li].map(i => grid[i]);
+    const base = [a, b, c].find(s => s !== "W") || "W";
+    if ([a, b, c].every(s => s === base || s === "W")) {
+      linePays += SLOT.byId[base].pay;
+      wins.push(li);
+    }
+  }
+  let mult = 1;
+  if (rand() < SLOT.multChance) mult = pickWeighted(rand(), SLOT.mults, SLOT.multTotal).v;
+  return { grid, wins, mult, x: wins.length ? (linePays / SLOT.lines.length) * mult : 0 };
+};
+
+// RTP exato: cada linha é independente na esperança, então dá para somar fórmula fechada.
+SLOT.theory = () => {
+  const p = id => SLOT.byId[id].w / SLOT.total;
+  const pw = p("W");
+  let evLine = SLOT.byId.W.pay * pw ** 3;
+  for (const s of SLOT.symbols) if (s.id !== "W") evLine += s.pay * ((p(s.id) + pw) ** 3 - pw ** 3);
+  const avgMult = SLOT.mults.reduce((a, m) => a + m.v * m.w, 0) / SLOT.multTotal;
+  const eMult = (1 - SLOT.multChance) + SLOT.multChance * avgMult;
+  return evLine * eMult;
+};
+
+const CRASH = {
+  edge: 0.03,
+  growth: 0.15,     // multiplicador = e^(0,15 · segundos)
+  cap: 10000,
+  point(rand) {
+    const x = (1 - CRASH.edge) / (1 - rand());
+    return Math.min(CRASH.cap, Math.max(1, Math.floor(x * 100) / 100));
+  },
+  multAt: t => Math.floor(Math.exp(CRASH.growth * t) * 100) / 100,
+};
+
+const MINES = {
+  edge: 0.03,
+  size: 25,
+  mult(m, k) {
+    let r = 1 - MINES.edge;
+    for (let i = 0; i < k; i++) r *= (MINES.size - i) / (MINES.size - m - i);
+    return r;
+  },
+  layout(rand, m) {
+    const cells = [...Array(MINES.size).keys()];
+    for (let i = 0; i < m; i++) {
+      const j = i + Math.floor(rand() * (MINES.size - i));
+      [cells[i], cells[j]] = [cells[j], cells[i]];
+    }
+    return new Set(cells.slice(0, m));
+  },
+};
+
+// ============================================================
+// SERVIDOR SIMULADO — carteira, rodadas abertas e registro.
+// Na versão real isto vira uma API (Node/Python) e o navegador só fala com ela.
+// ============================================================
+const Server = (() => {
+  const START = 100000;              // centavos
+  const MIN_BET = 20, MAX_BET = 50000;
+  let balance = START;
+  let seq = 100000;
+  const open = new Map();
+  const log = [];
+  const listeners = [];
+  const wait = (ms = 90) => new Promise(r => setTimeout(r, ms));
+  const emit = (delta) => listeners.forEach(fn => fn(balance, delta));
+
+  function debit(bet) {
+    if (!Number.isInteger(bet) || bet < MIN_BET || bet > MAX_BET) throw new Error("Aposta precisa ficar entre R$ 0,20 e R$ 500,00.");
+    if (bet > balance) throw new Error("Saldo insuficiente. Use Recarregar para voltar a R$ 1.000,00.");
+    balance -= bet;
+    emit(-bet);
+  }
+  function settle(round, payout, detail) {
+    balance += payout;
+    log.unshift({ id: round.id, game: round.game, bet: round.bet, payout, detail, at: new Date() });
+    if (log.length > 200) log.pop();
+    open.delete(round.id);
+    emit(payout);
+  }
+
+  return {
+    onChange: fn => listeners.push(fn),
+    balance: () => balance,
+    log: () => log,
+    async refill() { await wait(); balance = START; emit(0); },
+
+    async slotSpin(bet) {
+      await wait();
+      debit(bet);
+      const id = ++seq;
+      const r = SLOT.spin(RNG);
+      const payout = Math.floor(bet * r.x);
+      settle({ id, game: "Fruta Neon", bet }, payout, r.wins.length ? `${r.wins.length} linha(s)${r.mult > 1 ? ` · ${r.mult}×` : ""}` : "sem prêmio");
+      return { id, ...r, payout };
+    },
+
+    async crashBet(bet, auto) {
+      await wait();
+      debit(bet);
+      const id = ++seq;
+      open.set(id, { id, game: "Foguete", bet, auto, point: CRASH.point(RNG), start: performance.now() });
+      return { id, start: open.get(id).start };
+    },
+    // Simula o "empurrão" do servidor via websocket a cada quadro.
+    crashTick(id) {
+      const r = open.get(id);
+      if (!r) return null;
+      const m = CRASH.multAt((performance.now() - r.start) / 1000);
+      if (r.auto && m >= r.auto && r.auto <= r.point) {
+        const payout = Math.floor(r.bet * r.auto);
+        settle(r, payout, `retirou ${fmtX(r.auto)} (auto) · explodiu ${fmtX(r.point)}`);
+        return { state: "cashed", m: r.auto, payout, point: r.point };
+      }
+      if (m >= r.point) {
+        settle(r, 0, `explodiu ${fmtX(r.point)}`);
+        return { state: "crashed", m: r.point };
+      }
+      return { state: "running", m };
+    },
+    async crashCashout(id) {
+      const r = open.get(id);
+      if (!r) throw new Error("Rodada já encerrada.");
+      const m = CRASH.multAt((performance.now() - r.start) / 1000);
+      let res;
+      if (m >= r.point) { settle(r, 0, `explodiu ${fmtX(r.point)}`); res = { state: "crashed", m: r.point }; }
+      else {
+        const payout = Math.floor(r.bet * m);
+        settle(r, payout, `retirou ${fmtX(m)} · explodiu ${fmtX(r.point)}`);
+        res = { state: "cashed", m, payout, point: r.point };
+      }
+      await wait(40);
+      return res;
+    },
+
+    async minesStart(bet, m) {
+      await wait();
+      if (!(m >= 1 && m <= 24)) throw new Error("Escolha de 1 a 24 minas.");
+      debit(bet);
+      const id = ++seq;
+      open.set(id, { id, game: "Minas", bet, m, mines: MINES.layout(RNG, m), revealed: new Set() });
+      return { id };
+    },
+    async minesReveal(id, cell) {
+      await wait(60);
+      const r = open.get(id);
+      if (!r) throw new Error("Rodada já encerrada.");
+      if (r.revealed.has(cell)) throw new Error("Casa já aberta.");
+      if (r.mines.has(cell)) {
+        settle(r, 0, `${r.m} minas · mina na casa ${r.revealed.size + 1}`);
+        return { mine: true, mines: [...r.mines] };
+      }
+      r.revealed.add(cell);
+      const k = r.revealed.size;
+      if (k === MINES.size - r.m) {
+        const payout = Math.floor(r.bet * MINES.mult(r.m, k));
+        settle(r, payout, `${r.m} minas · limpou a grade`);
+        return { mine: false, k, done: true, payout, mines: [...r.mines], mult: MINES.mult(r.m, k) };
+      }
+      return { mine: false, k, mult: MINES.mult(r.m, k), next: MINES.mult(r.m, k + 1) };
+    },
+    async minesCashout(id) {
+      await wait();
+      const r = open.get(id);
+      if (!r) throw new Error("Rodada já encerrada.");
+      const k = r.revealed.size;
+      if (k < 1) throw new Error("Abra pelo menos uma casa antes de retirar.");
+      const payout = Math.floor(r.bet * MINES.mult(r.m, k));
+      settle(r, payout, `${r.m} minas · retirou com ${k} casa(s)`);
+      return { payout, mines: [...r.mines], mult: MINES.mult(r.m, k) };
+    },
+  };
+})();
+
+// ============================================================
+// UI
+// ============================================================
+const $ = id => document.getElementById(id);
+const BRL = c => (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const pct = (v, d = 2) => (v * 100).toLocaleString("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d }) + "%";
+const fmtX = v => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "×";
+const intBR = v => v.toLocaleString("pt-BR");
+const readBet = el => Math.round(parseFloat(el.value || "0") * 100);
+function say(el, text, kind = "") { el.textContent = text; el.className = "msg " + kind; }
+
+// Carteira
+let flashTimer;
+Server.onChange((bal, delta) => {
+  $("balance").textContent = BRL(bal);
+  const w = $("wallet");
+  w.classList.remove("flash-win", "flash-loss");
+  if (delta > 0) w.classList.add("flash-win");
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => w.classList.remove("flash-win", "flash-loss"), 700);
+  renderHistory();
+});
+$("refill").onclick = () => Server.refill();
+
+// Abas
+const tabs = [...document.querySelectorAll("nav button")];
+function showTab(name) {
+  if (!tabs.some(t => t.dataset.tab === name)) name = "slot";
+  tabs.forEach(t => t.setAttribute("aria-selected", t.dataset.tab === name));
+  document.querySelectorAll("[data-panel]").forEach(p => p.hidden = p.dataset.panel !== name);
+  if (name === "crash") drawCrash(crashView);
+  if (name === "simulador") drawConv();
+}
+tabs.forEach(t => t.onclick = () => { showTab(t.dataset.tab); try { history.replaceState(null, "", "#" + t.dataset.tab); } catch (e) {} });
+
+// ---------- Slot ----------
+const reels = $("reels");
+const cells = [];
+const startGrid = ["D","K","L","S","W","S","L","K","D"];
+for (let i = 0; i < 9; i++) {
+  const c = document.createElement("div");
+  c.className = "c"; c.textContent = SLOT.byId[startGrid[i]].g;
+  reels.appendChild(c); cells.push(c);
+}
+$("slot-rtp").textContent = pct(SLOT.theory());
+$("paytable").innerHTML = SLOT.symbols.map(s => `<tr><td>${s.g} ${s.name}</td><td>${s.pay}×</td></tr>`).join("");
+const randGlyph = () => SLOT.symbols[Math.floor(Math.random() * SLOT.symbols.length)].g;
+
+$("slot-spin").onclick = async () => {
+  const btn = $("slot-spin"), msg = $("slot-msg");
+  btn.disabled = true; say(msg, ""); $("slot-mult").textContent = "";
+  cells.forEach(c => c.classList.remove("hit"));
+  let res;
+  try { res = await Server.slotSpin(readBet($("slot-bet"))); }
+  catch (e) { say(msg, e.message, "err"); btn.disabled = false; return; }
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  await Promise.all([0, 1, 2].map(col => new Promise(done => {
+    const idx = [col, col + 3, col + 6];
+    idx.forEach(i => cells[i].classList.add("blur"));
+    const iv = setInterval(() => idx.forEach(i => cells[i].textContent = randGlyph()), 60);
+    setTimeout(() => {
+      clearInterval(iv);
+      idx.forEach(i => { cells[i].textContent = SLOT.byId[res.grid[i]].g; cells[i].classList.remove("blur"); });
+      done();
+    }, reduced ? 0 : 450 + col * 260);
+  })));
+  res.wins.forEach(li => SLOT.lines[li].forEach(i => cells[i].classList.add("hit")));
+  if (res.mult > 1) $("slot-mult").textContent = `Multiplicador ${res.mult}×`;
+  if (res.payout > 0) say(msg, `Ganhou ${BRL(res.payout)} · ${fmtX(res.x)} a aposta · rodada #${res.id}`, "win");
+  else say(msg, `Sem prêmio · rodada #${res.id}`, "");
+  btn.disabled = false;
+};
+
+// ---------- Crash ----------
+const cv = $("crash-canvas");
+let crashView = { t: 0, m: 1, state: "idle" };
+let crashRound = null;
+const crashHist = [];
+
+function drawCrash(v) {
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight;
+  if (!W) return;
+  if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  const css = getComputedStyle(document.documentElement);
+  const col = n => css.getPropertyValue(n).trim();
+  const pad = { l: 46, r: 16, t: 16, b: 26 };
+  const maxT = Math.max(8, v.t * 1.15), maxM = Math.max(2, v.m * 1.2);
+  const X = t => pad.l + (t / maxT) * (W - pad.l - pad.r);
+  const Y = m => H - pad.b - ((m - 1) / (maxM - 1)) * (H - pad.t - pad.b);
+  ctx.font = "11px JetBrains Mono, monospace";
+  ctx.fillStyle = col("--muted"); ctx.strokeStyle = col("--line"); ctx.lineWidth = 1;
+  const step = maxM <= 3 ? 0.5 : maxM <= 6 ? 1 : maxM <= 15 ? 2 : Math.pow(10, Math.floor(Math.log10(maxM / 2)));
+  for (let m = 1; m <= maxM; m += step) {
+    const y = Math.round(Y(m)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    ctx.fillText(m.toFixed(m < 10 && step < 1 ? 1 : 0) + "×", 6, y + 4);
+  }
+  const tStep = maxT <= 12 ? 2 : maxT <= 30 ? 5 : 10;
+  for (let t = 0; t <= maxT; t += tStep) ctx.fillText(t + "s", X(t) - 6, H - 8);
+  const color = v.state === "crashed" ? col("--loss") : v.state === "cashed" ? col("--win") : col("--accent");
+  if (v.t > 0) {
+    ctx.beginPath();
+    const N = 80;
+    for (let i = 0; i <= N; i++) {
+      const t = (v.t * i) / N;
+      const m = Math.min(Math.exp(CRASH.growth * t), v.m);
+      i ? ctx.lineTo(X(t), Y(m)) : ctx.moveTo(X(t), Y(m));
+    }
+    ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke();
+    ctx.lineTo(X(v.t), Y(1)); ctx.lineTo(X(0), Y(1)); ctx.closePath();
+    ctx.globalAlpha = 0.12; ctx.fillStyle = color; ctx.fill(); ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(X(v.t), Y(v.m), 6, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+  }
+  ctx.fillStyle = color;
+  ctx.font = "800 " + Math.max(28, Math.min(56, W / 9)) + "px Bricolage Grotesque, sans-serif";
+  ctx.textAlign = "center";
+  const label = v.state === "idle" ? "Pronto" : fmtX(v.m);
+  ctx.fillText(label, W / 2, H * 0.42);
+  if (v.state === "crashed" || v.state === "cashed") {
+    ctx.font = "600 14px Figtree, sans-serif";
+    ctx.fillText(v.state === "crashed" ? "Explodiu" : "Retirado", W / 2, H * 0.42 + 26);
+  }
+  ctx.textAlign = "left";
+}
+
+function pushCrashHist(p) {
+  crashHist.unshift(p); if (crashHist.length > 14) crashHist.pop();
+  $("crash-hist").innerHTML = crashHist.map(x => `<span class="chip ${x >= 2 ? "hi" : "lo"}">${fmtX(x)}</span>`).join("");
+}
+
+function crashLoop() {
+  if (!crashRound) return;
+  const s = Server.crashTick(crashRound.id);
+  if (!s) return;
+  const t = (performance.now() - crashRound.start) / 1000;
+  if (s.state === "running") {
+    crashView = { t, m: s.m, state: "running" };
+    $("crash-btn").textContent = `Retirar ${BRL(Math.floor(crashRound.bet * s.m))}`;
+    drawCrash(crashView);
+    requestAnimationFrame(crashLoop);
+  } else finishCrash(s, t);
+}
+
+function finishCrash(s, t) {
+  if (!crashRound) return;
+  const id = crashRound.id;
+  crashRound = null;
+  const msg = $("crash-msg"), btn = $("crash-btn");
+  if (s.state === "crashed") {
+    crashView = { t, m: s.m, state: "crashed" };
+    say(msg, `Explodiu em ${fmtX(s.m)} · rodada #${id}`, "loss");
+    pushCrashHist(s.m);
+  } else {
+    crashView = { t, m: s.m, state: "cashed" };
+    say(msg, `Retirou em ${fmtX(s.m)} e ganhou ${BRL(s.payout)} · o foguete explodiu em ${fmtX(s.point)} · rodada #${id}`, "win");
+    pushCrashHist(s.point);
+  }
+  drawCrash(crashView);
+  btn.textContent = "Apostar"; btn.className = "btn primary"; btn.disabled = false;
+}
+
+$("crash-btn").onclick = async () => {
+  const btn = $("crash-btn"), msg = $("crash-msg");
+  if (crashRound) {
+    btn.disabled = true;
+    const id = crashRound.id;
+    try {
+      const s = await Server.crashCashout(id);
+      if (crashRound && crashRound.id === id) finishCrash(s, (performance.now() - crashRound.start) / 1000);
+    } catch (e) { /* a rodada já foi fechada pelo tick */ }
+    return;
+  }
+  const autoRaw = parseFloat($("crash-auto").value);
+  const auto = autoRaw >= 1.01 ? Math.round(autoRaw * 100) / 100 : null;
+  const bet = readBet($("crash-bet"));
+  btn.disabled = true; say(msg, "");
+  try {
+    const r = await Server.crashBet(bet, auto);
+    crashRound = { id: r.id, start: r.start, bet };
+    btn.className = "btn cash"; btn.disabled = false;
+    requestAnimationFrame(crashLoop);
+  } catch (e) { say(msg, e.message, "err"); btn.disabled = false; }
+};
+window.addEventListener("resize", () => drawCrash(crashView));
+
+// ---------- Minas ----------
+const board = $("board");
+const tiles = [];
+let minesRound = null;
+for (let m = 1; m <= 24; m++) $("mines-count").insertAdjacentHTML("beforeend", `<option value="${m}" ${m === 3 ? "selected" : ""}>${m}</option>`);
+for (let i = 0; i < 25; i++) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "tile"; b.disabled = true; b.setAttribute("aria-label", "Casa " + (i + 1));
+  b.onclick = () => revealTile(i);
+  board.appendChild(b); tiles.push(b);
+}
+function minesInfo() {
+  const m = +$("mines-count").value;
+  $("mines-max").textContent = intBR(Math.round(MINES.mult(m, 25 - m) * 100) / 100) + "×";
+  if (!minesRound) { $("mines-cur").textContent = "–"; $("mines-next").textContent = fmtX(MINES.mult(m, 1)); $("mines-pay").textContent = "–"; }
+}
+$("mines-count").onchange = minesInfo;
+minesInfo();
+
+function revealAll(mines, hit) {
+  tiles.forEach((t, i) => {
+    t.disabled = true;
+    if (mines.includes(i)) { t.textContent = "💣"; if (i === hit) t.classList.add("boom"); else t.classList.add("ghost"); }
+    else if (!t.classList.contains("safe")) { t.textContent = "💠"; t.classList.add("ghost"); }
+  });
+}
+function endMines(text, kind) {
+  minesRound = null;
+  say($("mines-msg"), text, kind);
+  const b = $("mines-btn"); b.textContent = "Começar"; b.className = "btn primary"; b.disabled = false;
+  $("mines-count").disabled = false;
+}
+
+async function revealTile(i) {
+  if (!minesRound || minesRound.busy) return;
+  minesRound.busy = true;
+  const id = minesRound.id, bet = minesRound.bet;
+  let r;
+  try { r = await Server.minesReveal(id, i); }
+  catch (e) { say($("mines-msg"), e.message, "err"); if (minesRound) minesRound.busy = false; return; }
+  if (r.mine) { revealAll(r.mines, i); $("mines-pay").textContent = BRL(0); endMines(`Mina! Perdeu ${BRL(bet)} · rodada #${id}`, "loss"); return; }
+  tiles[i].textContent = "💠"; tiles[i].classList.add("safe"); tiles[i].disabled = true;
+  $("mines-cur").textContent = fmtX(r.mult);
+  $("mines-pay").textContent = BRL(Math.floor(bet * r.mult));
+  if (r.done) { revealAll(r.mines, -1); $("mines-next").textContent = "–"; endMines(`Grade limpa! Ganhou ${BRL(r.payout)} · rodada #${id}`, "win"); return; }
+  $("mines-next").textContent = fmtX(r.next);
+  $("mines-btn").disabled = false;
+  minesRound.busy = false;
+}
+
+$("mines-btn").onclick = async () => {
+  const btn = $("mines-btn"), msg = $("mines-msg");
+  if (minesRound) {
+    btn.disabled = true;
+    try {
+      const r = await Server.minesCashout(minesRound.id);
+      const id = minesRound.id;
+      revealAll(r.mines, -1);
+      endMines(`Retirou ${fmtX(r.mult)} e ganhou ${BRL(r.payout)} · rodada #${id}`, "win");
+    } catch (e) { say(msg, e.message, "err"); btn.disabled = false; }
+    return;
+  }
+  const m = +$("mines-count").value, bet = readBet($("mines-bet"));
+  btn.disabled = true; say(msg, "");
+  try {
+    const r = await Server.minesStart(bet, m);
+    minesRound = { id: r.id, bet, m, busy: false };
+    tiles.forEach(t => { t.className = "tile"; t.textContent = ""; t.disabled = false; });
+    $("mines-count").disabled = true;
+    $("mines-cur").textContent = "1,00×"; $("mines-next").textContent = fmtX(MINES.mult(m, 1)); $("mines-pay").textContent = "–";
+    btn.textContent = "Retirar"; btn.className = "btn cash"; btn.disabled = true;
+    say(msg, `Rodada #${r.id} aberta. Escolha uma casa.`);
+  } catch (e) { say(msg, e.message, "err"); btn.disabled = false; }
+};
+
+// ---------- Simulador ----------
+const BUCKETS = [
+  { label: "Sem retorno (0×)", test: x => x === 0 },
+  { label: "Menos que a aposta", test: x => x > 0 && x < 1 },
+  { label: "1× a 2×", test: x => x >= 1 && x < 2 },
+  { label: "2× a 5×", test: x => x >= 2 && x < 5 },
+  { label: "5× a 20×", test: x => x >= 5 && x < 20 },
+  { label: "20× a 100×", test: x => x >= 20 && x < 100 },
+  { label: "100× ou mais", test: x => x >= 100 },
+];
+let sim = null, simRunning = false;
+
+function simSetup() {
+  const g = $("sim-game").value;
+  document.querySelectorAll("[data-for]").forEach(el => el.hidden = el.dataset.for !== g);
+}
+$("sim-game").onchange = simSetup;
+simSetup();
+
+function simRound(g, p) {
+  if (g === "slot") return SLOT.spin(RNG).x;
+  if (g === "crash") return CRASH.point(RNG) >= p.target ? p.target : 0;
+  // Minas: abrir k casas é tirar k vezes sem reposição de uma urna com m minas.
+  for (let i = 0; i < p.picks; i++) if (RNG() < p.mines / (MINES.size - i)) return 0;
+  return MINES.mult(p.mines, p.picks);
+}
+function simTheory(g, p) {
+  if (g === "slot") return { rtp: SLOT.theory(), hit: null };
+  if (g === "crash") return { rtp: 0.97, hit: 0.97 / p.target };
+  let hit = 1;
+  for (let i = 0; i < p.picks; i++) hit *= (MINES.size - p.mines - i) / (MINES.size - i);
+  return { rtp: 0.97, hit };
+}
+
+$("sim-run").onclick = () => {
+  if (simRunning) { simRunning = false; return; }
+  const g = $("sim-game").value, N = +$("sim-n").value;
+  const p = {
+    target: Math.max(1.01, Math.round(parseFloat($("sim-target").value || "2") * 100) / 100),
+    mines: Math.min(24, Math.max(1, parseInt($("sim-mines").value || "3", 10))),
+  };
+  p.picks = Math.min(25 - p.mines, Math.max(1, parseInt($("sim-picks").value || "5", 10)));
+  $("sim-picks").value = p.picks;
+  sim = { g, p, N, n: 0, sum: 0, sum2: 0, hits: 0, max: 0, buckets: BUCKETS.map(() => 0), pts: [], theory: simTheory(g, p), t0: performance.now() };
+  simRunning = true;
+  $("sim-run").textContent = "Parar";
+  const chunk = Math.max(20000, Math.floor(N / 250));
+  const step = () => {
+    if (!simRunning) return simDone();
+    const end = Math.min(N, sim.n + chunk);
+    for (let i = sim.n; i < end; i++) {
+      const x = simRound(g, p);
+      sim.sum += x; sim.sum2 += x * x;
+      if (x > 0) sim.hits++;
+      if (x > sim.max) sim.max = x;
+      for (let b = 0; b < BUCKETS.length; b++) if (BUCKETS[b].test(x)) { sim.buckets[b]++; break; }
+    }
+    sim.n = end;
+    sim.pts.push([sim.n, sim.sum / sim.n]);
+    renderSim();
+    if (sim.n < N) setTimeout(step, 0); else simDone();
+  };
+  setTimeout(step, 0);
+};
+function simDone() { simRunning = false; $("sim-run").textContent = "Rodar simulação"; renderSim(); }
+
+function renderSim() {
+  if (!sim) return;
+  const s = sim, rtp = s.sum / s.n;
+  const sd = Math.sqrt(Math.max(0, s.sum2 / s.n - rtp * rtp));
+  const ci = 1.96 * sd / Math.sqrt(s.n);
+  $("s-rtp").textContent = pct(rtp);
+  $("s-rtp-t").textContent = "teórico " + pct(s.theory.rtp);
+  $("s-rtp").className = "v " + (Math.abs(rtp - s.theory.rtp) <= ci * 1.2 ? "pos" : "");
+  $("s-n").textContent = intBR(s.n);
+  $("s-time").textContent = ((performance.now() - s.t0) / 1000).toFixed(1).replace(".", ",") + " s";
+  $("s-hit").textContent = pct(s.hits / s.n, 1);
+  $("s-hit-t").textContent = s.theory.hit ? "teórico " + pct(s.theory.hit, 1) : "rodadas com retorno";
+  $("s-max").textContent = intBR(Math.round(s.max * 100) / 100);
+  $("s-sd").textContent = sd.toFixed(2).replace(".", ",");
+  $("s-vol").textContent = sd < 2 ? "volatilidade baixa" : sd < 6 ? "volatilidade média" : "volatilidade alta";
+  $("s-ci").textContent = "±" + pct(ci);
+  $("s-prog").style.width = (s.n / s.N * 100) + "%";
+  const maxB = Math.max(...s.buckets);
+  $("s-dist").innerHTML = `<tr><th>Resultado da rodada</th><th style="text-align:right">Rodadas</th><th style="text-align:right">%</th><th style="width:30%"></th></tr>` +
+    BUCKETS.map((b, i) => `<tr><td>${b.label}</td><td class="n">${intBR(s.buckets[i])}</td><td class="n">${pct(s.buckets[i] / s.n, 2)}</td><td><div class="bar" style="width:${maxB ? s.buckets[i] / maxB * 100 : 0}%"></div></td></tr>`).join("");
+  drawConv();
+}
+
+function drawConv() {
+  const c = $("s-chart");
+  const dpr = window.devicePixelRatio || 1;
+  const W = c.clientWidth, H = c.clientHeight;
+  if (!W) return;
+  c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
+  const ctx = c.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const css = getComputedStyle(document.documentElement);
+  const col = n => css.getPropertyValue(n).trim();
+  ctx.fillStyle = col("--cell"); ctx.fillRect(0, 0, W, H);
+  ctx.font = "11px JetBrains Mono, monospace";
+  if (!sim || !sim.pts.length) {
+    ctx.fillStyle = col("--muted"); ctx.textAlign = "center";
+    ctx.fillText("Escolha um jogo e clique em Rodar simulação", W / 2, H / 2);
+    ctx.textAlign = "left"; return;
+  }
+  const pad = { l: 58, r: 14, t: 14, b: 26 };
+  const T = sim.theory.rtp;
+  const span = Math.max(0.01, ...sim.pts.slice(Math.floor(sim.pts.length * 0.05)).map(p => Math.abs(p[1] - T))) * 1.3;
+  const lo = T - span, hi = T + span;
+  const X = n => pad.l + (n / sim.N) * (W - pad.l - pad.r);
+  const Y = v => pad.t + (1 - (Math.min(hi, Math.max(lo, v)) - lo) / (hi - lo)) * (H - pad.t - pad.b);
+  ctx.strokeStyle = col("--line"); ctx.fillStyle = col("--muted"); ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const v = lo + (hi - lo) * i / 4, y = Math.round(Y(v)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    ctx.fillText(pct(v), 4, y + 4);
+  }
+  ctx.fillText("0", pad.l, H - 8);
+  ctx.textAlign = "right"; ctx.fillText(intBR(sim.N), W - pad.r, H - 8); ctx.textAlign = "left";
+  ctx.setLineDash([5, 4]); ctx.strokeStyle = col("--muted");
+  ctx.beginPath(); ctx.moveTo(pad.l, Y(T)); ctx.lineTo(W - pad.r, Y(T)); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.strokeStyle = col("--accent"); ctx.lineWidth = 2;
+  ctx.beginPath();
+  sim.pts.forEach((p, i) => i ? ctx.lineTo(X(p[0]), Y(p[1])) : ctx.moveTo(X(p[0]), Y(p[1])));
+  ctx.stroke();
+  const last = sim.pts[sim.pts.length - 1];
+  ctx.beginPath(); ctx.arc(X(last[0]), Y(last[1]), 4, 0, Math.PI * 2); ctx.fillStyle = col("--accent"); ctx.fill();
+}
+window.addEventListener("resize", drawConv);
+
+// ---------- Rodadas ----------
+function renderHistory() {
+  const log = Server.log();
+  $("hist-empty").hidden = log.length > 0;
+  $("hist").innerHTML = log.length ? `<tr><th>Rodada</th><th>Hora</th><th>Jogo</th><th>Detalhe</th><th style="text-align:right">Aposta</th><th style="text-align:right">Pagamento</th><th style="text-align:right">Resultado</th></tr>` +
+    log.map(r => {
+      const net = r.payout - r.bet;
+      return `<tr><td class="num">#${r.id}</td><td class="num">${r.at.toLocaleTimeString("pt-BR")}</td><td>${r.game}</td><td>${r.detail}</td><td class="r">${BRL(r.bet)}</td><td class="r">${BRL(r.payout)}</td><td class="r ${net >= 0 ? "pos" : "neg"}">${net >= 0 ? "+" : ""}${BRL(net)}</td></tr>`;
+    }).join("") : "";
+}
+
+// Início
+renderHistory();
+showTab((location.hash || "").slice(1));
+if (document.fonts) document.fonts.ready.then(() => { drawCrash(crashView); drawConv(); });
+</script>
