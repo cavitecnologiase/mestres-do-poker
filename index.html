@@ -163,6 +163,7 @@ td .sub{display:block;font-size:.8rem;color:var(--muted)}
 /* Cassino */
 .jackpot{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border:1px solid var(--brass);border-radius:16px;padding:18px 24px;margin-bottom:24px;background:linear-gradient(90deg,var(--felt-3),var(--felt-2))}
 .jackpot .jv{font:800 clamp(1.8rem,4vw,2.6rem)/1 var(--f-display);color:var(--brass);font-variant-numeric:tabular-nums}
+.demo-band{margin:24px 0 0}.demo-band h3{margin:.2em 0 .15em;font:800 1.4rem var(--f-display)}.demo-band p{margin:0;opacity:.8;max-width:60ch}
 .cas-tabs{margin-bottom:22px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px}
 .tile{background:var(--felt-2);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;text-align:left;color:var(--ivory);font:inherit;padding:0;transition:transform .2s,border-color .2s}
@@ -319,6 +320,10 @@ footer{border-top:1px solid var(--line);padding-block:48px 32px;color:var(--mute
       </div>
       <div class="tabs cas-tabs" role="tablist" aria-label="Categorias do cassino" id="casTabs"></div>
       <div class="tiles" id="tiles"></div>
+      <div class="jackpot demo-band">
+        <div><span class="eyebrow">Demonstração · saldo fictício</span><h3>Bancada de Jogos</h3><p>Teste o slot Fruta Neon, o crash Foguete e o Minas, e veja o RTP de cada um medido em milhões de rodadas.</p></div>
+        <a class="btn btn-chip" href="jogos/">Jogar a demo</a>
+      </div>
     </div>
   </section>
 
